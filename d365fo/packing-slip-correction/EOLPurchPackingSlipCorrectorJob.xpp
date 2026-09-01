@@ -1,0 +1,34 @@
+/// <summary>
+/// Runnable job: correct one posted product receipt to a specific received quantity.
+/// </summary>
+public class EOLPurchPackingSlipCorrectorJob
+{
+    /// <summary>
+    /// Entry point.
+    /// </summary>
+    /// <param name="_args">
+    /// Unused.
+    /// </param>
+    public static void main(Args _args)
+    {
+        Num           packingSlipId;
+        PurchId       purchId;
+        InventTransId inventTransId;
+        WMSLocationId wmsLocationId;
+        Qty           newReceiveQty;
+
+        packingSlipId   = 'BL-000123';
+        purchId         = 'PO-000456';
+        inventTransId   = '';
+        wmsLocationId   = '';
+        newReceiveQty   = 7;
+
+        EOLPurchPackingSlipCorrector::correctQty(
+            packingSlipId,
+            newReceiveQty,
+            purchId,
+            inventTransId,
+            wmsLocationId);
+    }
+
+}

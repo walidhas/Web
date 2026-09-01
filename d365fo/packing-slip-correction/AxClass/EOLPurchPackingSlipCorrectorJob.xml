@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>EOLPurchPackingSlipCorrectorJob</Name>
+  <SourceCode>
+    <Declaration><![CDATA[
+/// <summary>
+/// Runnable job: correct one posted product receipt to a specific received quantity.
+/// </summary>
+public class EOLPurchPackingSlipCorrectorJob
+{
+}
+]]></Declaration>
+    <Methods>
+      <Method>
+        <Name>main</Name>
+        <Source><![CDATA[
+    /// <summary>
+    /// Entry point.
+    /// </summary>
+    /// <param name="_args">
+    /// Unused.
+    /// </param>
+    public static void main(Args _args)
+    {
+        Num           packingSlipId;
+        PurchId       purchId;
+        InventTransId inventTransId;
+        WMSLocationId wmsLocationId;
+        Qty           newReceiveQty;
+
+        packingSlipId   = 'BL-000123';
+        purchId         = 'PO-000456';
+        inventTransId   = '';
+        wmsLocationId   = '';
+        newReceiveQty   = 7;
+
+        EOLPurchPackingSlipCorrector::correctQty(
+            packingSlipId,
+            newReceiveQty,
+            purchId,
+            inventTransId,
+            wmsLocationId);
+    }
+]]></Source>
+      </Method>
+    </Methods>
+  </SourceCode>
+</AxClass>

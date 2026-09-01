@@ -13,3 +13,5 @@ SalesLineNotFound=La ligne de commande liée à la transaction du BL est introuv
 ParmBuildFailed=Échec de la construction des paramètres de correction du BL.
 PostingFailed=Échec de la validation de la correction du bon de livraison.
 CorrectionPosted=Bon de livraison %1, article %2 : quantité livrée positionnée à %3 (quantité d'inventaire stornée %4).
+PurchOrderNotFound=La commande fournisseur %1 est introuvable.
+PurchCorrectionPosted=Bon de réception %1 : quantité reçue positionnée à %2.

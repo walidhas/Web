@@ -1,0 +1,84 @@
+/// <summary>
+/// Drop-in replacement for insertParmTableData.
+/// The crash is not SpecQty: createData(false) with VersioningUpdateType::Correction
+/// calls PurchFormletterParmDataPackingSlip.selectChooseLines -> insertParmLine
+/// where systemSequence is null (NRE on reserveValues).
+/// Build parm records with Initial + init(), then apply Correction on PurchFormLetter.run().
+/// </summary>
+private void insertParmTableData(WMSLocationId _wmsLocationId)
+{
+    InventDim            inventDim;
+    Qty                  newReceiveQty;
+
+    // Target remaining received quantity (same meaning as the Update column on Correct).
+    newReceiveQty = 7;
+
+    // 1) Initial + init() : create PurchParmUpdate only, do not choose journal lines.
+    purchFormLetterParmData = PurchFormletterParmData::newData(
+        DocumentStatus::PackingSlip,
+        VersioningUpdateType::Initial);
+
+    purchFormLetterParmData.init();
+    purchFormLetterParmData.parmOnlyCreateParmUpdate(true);
+    purchFormLetterParmData.createData(false);
+
+    purchParmUpdate = purchFormLetterParmData.parmParmUpdate();
+
+    if (!purchParmUpdate.RecId)
+    {
+        throw error("PurchParmUpdate was not created.");
+    }
+
+    // ReceiveNow = specific qty on PurchParmLine. All would ignore that qty.
+    purchParmUpdate.SpecQty = PurchUpdate::ReceiveNow;
+    purchParmUpdate.DocumentDate = packingSlipDate;
+    purchParmUpdate.Proforma = NoYes::No;
+    purchParmUpdate.update();
+
+    // 2) Manually build PurchParmTable.
+    purchParmTable.clear();
+    purchParmTable.initValue();
+    purchParmTable.TransDate = packingSlipDate;
+    purchParmTable.Ordering = DocumentStatus::PackingSlip;
+    purchParmTable.ParmJobStatus = ParmJobStatus::Waiting;
+    purchParmTable.initFromPurchTable(purchTable);
+    purchParmTable.ParmId = purchParmUpdate.ParmId;
+    purchParmTable.Num = vendPackingSlipJour.PackingSlipId;
+    purchParmTable.VendPackingSlipJour = vendPackingSlipJour.RecId;
+    purchParmTable.insert();
+
+    // 3) Manually build PurchParmLine for the requested warehouse location.
+    while select purchLine
+        where purchLine.PurchId == purchTable.PurchId
+    {
+        inventDim = purchLine.inventDim();
+
+        if (_wmsLocationId && inventDim.wMSLocationId != _wmsLocationId)
+        {
+            continue;
+        }
+
+        select firstonly vendPackingSlipTrans
+            where vendPackingSlipTrans.OrigPurchid == purchLine.PurchId
+               && vendPackingSlipTrans.PackingSlipId == vendPackingSlipJour.PackingSlipId
+               && vendPackingSlipTrans.InventTransId == purchLine.InventTransId;
+
+        if (!vendPackingSlipTrans.RecId)
+        {
+            continue;
+        }
+
+        purchParmLine.clear();
+        purchParmLine.initValue();
+        purchParmLine.initFromPurchLine(purchLine);
+        purchParmLine.ParmId = purchParmTable.ParmId;
+        purchParmLine.TableRefId = purchParmTable.TableRefId;
+        purchParmLine.ReceiveNow = newReceiveQty;
+        purchParmLine.modifiedReceiveNow();
+        purchParmLine.PreviousReceiveNow = vendPackingSlipTrans.Qty;
+        purchParmLine.PreviousInventNow = vendPackingSlipTrans.InventQty;
+        purchParmLine.setQty(DocumentStatus::PackingSlip, false, true);
+        purchParmLine.setLineAmount();
+        purchParmLine.insert();
+    }
+}
