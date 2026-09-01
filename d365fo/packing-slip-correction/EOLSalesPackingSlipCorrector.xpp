@@ -305,14 +305,24 @@ public class EOLSalesPackingSlipCorrector
         {
             ttsbegin;
 
+            // Use Initial here. PackingSlip + Correction makes createData() call
+            // chooseLines / insertParmLine while systemSequence is still null
+            // (NullReferenceException in Purch/SalesFormletterParmData.insertParmLine).
             formletterParmData = SalesFormletterParmData::newData(
                 DocumentStatus::PackingSlip,
-                VersioningUpdateType::Correction);
+                VersioningUpdateType::Initial);
 
+            formletterParmData.init();
             formletterParmData.parmOnlyCreateParmUpdate(true);
             formletterParmData.createData(false);
 
             salesParmUpdate = formletterParmData.parmParmUpdate();
+
+            if (!salesParmUpdate.RecId)
+            {
+                throw error("@EOLPackingSlip:ParmBuildFailed");
+            }
+
             salesParmUpdate.SpecQty = SalesUpdate::DeliverNow;
             salesParmUpdate.DocumentDate = transDate;
             salesParmUpdate.Proforma = NoYes::No;

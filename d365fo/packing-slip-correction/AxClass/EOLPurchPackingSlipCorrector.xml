@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>EOLPurchPackingSlipCorrector</Name>
+  <SourceCode>
+    <Declaration><![CDATA[
+/// <summary>
+/// Posts a product receipt (purchase packing slip) correction to a target received quantity.
+/// </summary>
+public class EOLPurchPackingSlipCorrector
+{
+}
+]]></Declaration>
+    <Methods>
+      <Method>
+        <Name>correctQty</Name>
+        <Source><![CDATA[
+    /// <summary>
+    /// Corrects one product receipt line to a new remaining received quantity.
+    /// </summary>
+    /// <param name="_packingSlipId">
+    /// Posted product receipt id.
+    /// </param>
+    /// <param name="_newReceiveQty">
+    /// New quantity that must remain received (Update column on the Correct form).
+    /// </param>
+    /// <param name="_purchId">
+    /// Purchase order id. Recommended when packing slip ids are not unique.
+    /// </param>
+    /// <param name="_inventTransId">
+    /// Purchase line inventory transaction id. Required when several lines match.
+    /// </param>
+    /// <param name="_wmsLocationId">
+    /// Optional warehouse location filter.
+    /// </param>
+    /// <returns>
+    /// The original product receipt journal that was corrected.
+    /// </returns>
+    public static VendPackingSlipJour correctQty(
+        Num _packingSlipId,
+        Qty _newReceiveQty,
+        PurchId _purchId = '',
+        InventTransId _inventTransId = '',
+        WMSLocationId _wmsLocationId = '')
+    {
+        VendPackingSlipJour             packingSlipJour;
+        VendPackingSlipTrans            packingSlipTrans;
+        PurchTable                      purchTable;
+        PurchLine                       purchLine;
+        InventDim                       inventDim;
+        PurchFormletterParmData         formletterParmData;
+        PurchParmUpdate                 purchParmUpdate;
+        PurchParmTable                  purchParmTable;
+        PurchParmLine                   purchParmLine;
+        PurchFormLetter                 purchFormLetter;
+        TransDate                       transDate;
+        boolean                         lineCreated;
+
+        packingSlipJour = EOLPurchPackingSlipCorrector::findJournal(_packingSlipId, _purchId);
+        purchTable = PurchTable::find(packingSlipJour.PurchId);
+
+        if (!purchTable.RecId)
+        {
+            throw error(strFmt("@EOLPackingSlip:PurchOrderNotFound", packingSlipJour.PurchId));
+        }
+
+        transDate = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
+        lineCreated = false;
+
+        ttsbegin;
+
+        formletterParmData = PurchFormletterParmData::newData(
+            DocumentStatus::PackingSlip,
+            VersioningUpdateType::Initial);
+
+        formletterParmData.init();
+        formletterParmData.parmOnlyCreateParmUpdate(true);
+        formletterParmData.createData(false);
+
+        purchParmUpdate = formletterParmData.parmParmUpdate();
+
+        if (!purchParmUpdate.RecId)
+        {
+            throw error("@EOLPackingSlip:ParmBuildFailed");
+        }
+
+        purchParmUpdate.SpecQty = PurchUpdate::ReceiveNow;
+        purchParmUpdate.DocumentDate = transDate;
+        purchParmUpdate.Proforma = NoYes::No;
+        purchParmUpdate.update();
+
+        purchParmTable.clear();
+        purchParmTable.initValue();
+        purchParmTable.TransDate = transDate;
+        purchParmTable.Ordering = DocumentStatus::PackingSlip;
+        purchParmTable.ParmJobStatus = ParmJobStatus::Waiting;
+        purchParmTable.initFromPurchTable(purchTable);
+        purchParmTable.ParmId = purchParmUpdate.ParmId;
+        purchParmTable.Num = packingSlipJour.PackingSlipId;
+        purchParmTable.VendPackingSlipJour = packingSlipJour.RecId;
+        purchParmTable.insert();
+
+        while select packingSlipTrans
+            where packingSlipTrans.OrigPurchid == packingSlipJour.PurchId
+               && packingSlipTrans.PackingSlipId == packingSlipJour.PackingSlipId
+        {
+            if (_inventTransId && packingSlipTrans.InventTransId != _inventTransId)
+            {
+                continue;
+            }
+
+            purchLine = PurchLine::findInventTransId(packingSlipTrans.InventTransId);
+
+            if (!purchLine.RecId)
+            {
+                continue;
+            }
+
+            if (_wmsLocationId)
+            {
+                inventDim = purchLine.inventDim();
+                if (inventDim.wMSLocationId != _wmsLocationId)
+                {
+                    continue;
+                }
+            }
+
+            purchParmLine.clear();
+            purchParmLine.initValue();
+            purchParmLine.initFromPurchLine(purchLine);
+            purchParmLine.ParmId = purchParmTable.ParmId;
+            purchParmLine.TableRefId = purchParmTable.TableRefId;
+            purchParmLine.ReceiveNow = _newReceiveQty;
+            purchParmLine.modifiedReceiveNow();
+            purchParmLine.PreviousReceiveNow = packingSlipTrans.Qty;
+            purchParmLine.PreviousInventNow = packingSlipTrans.InventQty;
+            purchParmLine.setQty(DocumentStatus::PackingSlip, false, true);
+            purchParmLine.setLineAmount();
+            purchParmLine.insert();
+            lineCreated = true;
+        }
+
+        if (!lineCreated)
+        {
+            throw error("@EOLPackingSlip:PackingSlipLineNotFound");
+        }
+
+        ttscommit;
+
+        purchFormLetter = PurchFormLetter::construct(DocumentStatus::PackingSlip);
+        purchFormLetter.parmVersioningUpdateType(VersioningUpdateType::Correction);
+        purchFormLetter.parmCallerTable(packingSlipJour);
+        purchFormLetter.purchParmUpdate(formletterParmData.parmParmUpdate());
+        purchFormLetter.parmId(purchParmTable.ParmId);
+        purchFormLetter.specQty(PurchUpdate::ReceiveNow);
+        purchFormLetter.transDate(transDate);
+        purchFormLetter.proforma(false);
+        purchFormLetter.run();
+
+        info(strFmt("@EOLPackingSlip:PurchCorrectionPosted",
+            packingSlipJour.PackingSlipId,
+            _newReceiveQty));
+
+        return packingSlipJour;
+    }
+]]></Source>
+      </Method>
+      <Method>
+        <Name>findJournal</Name>
+        <Source><![CDATA[
+    /// <summary>
+    /// Finds the product receipt journal.
+    /// </summary>
+    /// <param name="_packingSlipId">
+    /// Posted product receipt id.
+    /// </param>
+    /// <param name="_purchId">
+    /// Optional purchase order id used to disambiguate the journal.
+    /// </param>
+    /// <returns>
+    /// The product receipt journal.
+    /// </returns>
+    private static VendPackingSlipJour findJournal(
+        Num _packingSlipId,
+        PurchId _purchId)
+    {
+        VendPackingSlipJour packingSlipJour;
+        VendPackingSlipJour packingSlipJourCount;
+
+        if (!_packingSlipId)
+        {
+            throw error("@EOLPackingSlip:PackingSlipNotFound");
+        }
+
+        if (_purchId)
+        {
+            select firstonly packingSlipJour
+                where packingSlipJour.PackingSlipId == _packingSlipId
+                   && packingSlipJour.PurchId == _purchId;
+        }
+        else
+        {
+            select count(RecId) from packingSlipJourCount
+                where packingSlipJourCount.PackingSlipId == _packingSlipId;
+
+            if (packingSlipJourCount.RecId > 1)
+            {
+                throw error(strFmt("@EOLPackingSlip:AmbiguousPackingSlip", _packingSlipId));
+            }
+
+            select firstonly packingSlipJour
+                where packingSlipJour.PackingSlipId == _packingSlipId;
+        }
+
+        if (!packingSlipJour.RecId)
+        {
+            throw error(strFmt("@EOLPackingSlip:PackingSlipNotFoundId", _packingSlipId));
+        }
+
+        return packingSlipJour;
+    }
+]]></Source>
+      </Method>
+    </Methods>
+  </SourceCode>
+</AxClass>

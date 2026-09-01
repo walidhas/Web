@@ -13,3 +13,5 @@ SalesLineNotFound=The sales line of the packing slip transaction was not found.
 ParmBuildFailed=Failed to build packing slip correction parameters.
 PostingFailed=Failed to post the packing slip correction.
 CorrectionPosted=Packing slip %1, item %2: delivered quantity set to %3 (reversed inventory qty %4).
+PurchOrderNotFound=Purchase order %1 was not found.
+PurchCorrectionPosted=Product receipt %1: received quantity set to %2.

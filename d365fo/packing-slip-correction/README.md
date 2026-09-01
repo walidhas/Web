@@ -4,6 +4,58 @@ Code X++ à coller dans l’AOT pour **corriger un packing slip déjà validé**
 
 Comportement aligné sur le standard : **Ventes et marketing > Commandes client > Préparer > Journaux > Bon de livraison > Corriger**.
 
+## Crash `createData(false)` / ligne 224
+
+Le plantage n’est **pas** `purchParmUpdate.SpecQty = PurchUpdate::All`.
+
+La ligne suivante lève un `NullReferenceException` **à l’intérieur** du standard :
+
+```x++
+purchFormLetterParmData.createData(false);
+```
+
+Call stack réel :
+
+`PurchFormletterParmDataPackingSlip.selectChooseLines`
+→ `insertParmLine`
+→ `parmLine.RecId = systemSequence.reserveValues(...)`  
+`systemSequence` est **null**.
+
+Cause : `newData(..., VersioningUpdateType::Correction)` force le choix des lignes du journal **avant** l’init de `systemSequence`. `parmOnlyCreateParmUpdate(true)` n’empêche pas ce chemin en correction packing slip.
+
+Correctif à coller dans `insertParmTableData` : `insertParmTableData_FIX.xpp`
+
+```x++
+purchFormLetterParmData = PurchFormletterParmData::newData(
+    DocumentStatus::PackingSlip,
+    VersioningUpdateType::Initial);   // pas Correction ici
+
+purchFormLetterParmData.init();       // initialise systemSequence
+purchFormLetterParmData.parmOnlyCreateParmUpdate(true);
+purchFormLetterParmData.createData(false);
+
+purchParmUpdate = purchFormLetterParmData.parmParmUpdate();
+purchParmUpdate.SpecQty = PurchUpdate::ReceiveNow; // pas All si qté spécifique
+```
+
+La correction du journal se pose **au posting** :
+
+```x++
+purchFormLetter.parmVersioningUpdateType(VersioningUpdateType::Correction);
+purchFormLetter.parmCallerTable(vendPackingSlipJour);
+purchFormLetter.specQty(PurchUpdate::ReceiveNow);
+purchFormLetter.run();
+```
+
+Sur les lignes, renseigner aussi l’historique du BL :
+
+```x++
+purchParmLine.ReceiveNow = newReceiveQty;
+purchParmLine.modifiedReceiveNow();
+purchParmLine.PreviousReceiveNow = vendPackingSlipTrans.Qty;
+purchParmLine.PreviousInventNow = vendPackingSlipTrans.InventQty;
+```
+
 ## Règle métier
 
 Sur le formulaire standard, la colonne **Update / Quantité** = **nouvelle quantité qui doit rester livrée** (pas la quantité à storno).
@@ -27,6 +79,8 @@ Exemple : BL posté à 10, vous voulez 7 livrés → passer `7`. Le système rev
 |---|---|---|
 | `EOLSalesPackingSlipCorrector` | Classe | `AxClass/EOLSalesPackingSlipCorrector.xml` |
 | `EOLSalesPackingSlipCorrectorJob` | Classe (runnable) | `AxClass/EOLSalesPackingSlipCorrectorJob.xml` |
+| `EOLPurchPackingSlipCorrector` | Classe | `EOLPurchPackingSlipCorrector.xpp` (réception achat) |
+| `EOLPurchPackingSlipCorrectorJob` | Classe (runnable) | `EOLPurchPackingSlipCorrectorJob.xpp` |
 | `EOLPackingSlip` | Label file en-US + fr | `AxLabelFile/` |
 
 Versions lisibles (même code) : `EOLSalesPackingSlipCorrector.xpp` et `EOLSalesPackingSlipCorrectorJob.xpp`.
@@ -45,6 +99,16 @@ Exemple de références projet :
   <SubType>Content</SubType>
   <Name>EOLSalesPackingSlipCorrectorJob</Name>
   <Link>EOLSalesPackingSlipCorrectorJob</Link>
+</Content>
+<Content Include="AxClass\EOLPurchPackingSlipCorrector">
+  <SubType>Content</SubType>
+  <Name>EOLPurchPackingSlipCorrector</Name>
+  <Link>EOLPurchPackingSlipCorrector</Link>
+</Content>
+<Content Include="AxClass\EOLPurchPackingSlipCorrectorJob">
+  <SubType>Content</SubType>
+  <Name>EOLPurchPackingSlipCorrectorJob</Name>
+  <Link>EOLPurchPackingSlipCorrectorJob</Link>
 </Content>
 <Content Include="AxLabelFile\EOLPackingSlip_en-US">
   <SubType>Content</SubType>
