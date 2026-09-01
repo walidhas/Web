@@ -1,0 +1,394 @@
+/// <summary>
+/// Posts a packing slip correction so that a line remains delivered at a specific quantity.
+/// Same behavior as Sales and marketing > Journals > Packing slip > Correct.
+/// DeliverNow is the new remaining delivered qty (sales unit), not the qty to reverse.
+/// </summary>
+public class EOLSalesPackingSlipCorrector
+{
+    /// <summary>
+    /// Corrects one packing slip line to a new remaining delivered quantity.
+    /// </summary>
+    /// <param name="_packingSlipId">
+    /// Posted packing slip id.
+    /// </param>
+    /// <param name="_newDeliveredQty">
+    /// New quantity that must remain delivered, in the sales unit (Update column on the Correct form).
+    /// Must be greater than or equal to 0 and lower than the originally packed quantity.
+    /// </param>
+    /// <param name="_inventTransId">
+    /// Sales line inventory transaction id. Required when several lines match the item.
+    /// </param>
+    /// <param name="_itemId">
+    /// Item to correct when <c>_inventTransId</c> is empty.
+    /// </param>
+    /// <param name="_salesId">
+    /// Sales order id. Recommended when packing slip ids are not unique across orders.
+    /// </param>
+    /// <returns>
+    /// The original packing slip journal that was corrected.
+    /// </returns>
+    public static CustPackingSlipJour correctQty(
+        PackingSlipId _packingSlipId,
+        Qty _newDeliveredQty,
+        InventTransId _inventTransId = '',
+        ItemId _itemId = '',
+        SalesId _salesId = '')
+    {
+        CustPackingSlipJour packingSlipJour;
+
+        packingSlipJour = EOLSalesPackingSlipCorrector::findPackingSlip(_packingSlipId, _salesId);
+
+        return EOLSalesPackingSlipCorrector::correctQtyOnJournal(
+            packingSlipJour,
+            _newDeliveredQty,
+            _inventTransId,
+            _itemId);
+    }
+
+    /// <summary>
+    /// Corrects one packing slip line identified by the packing slip journal RecId.
+    /// </summary>
+    /// <param name="_packingSlipJourRecId">
+    /// RecId of <c>CustPackingSlipJour</c>.
+    /// </param>
+    /// <param name="_newDeliveredQty">
+    /// New quantity that must remain delivered, in the sales unit.
+    /// </param>
+    /// <param name="_inventTransId">
+    /// Sales line inventory transaction id. Required when several lines match the item.
+    /// </param>
+    /// <param name="_itemId">
+    /// Item to correct when <c>_inventTransId</c> is empty.
+    /// </param>
+    /// <returns>
+    /// The original packing slip journal that was corrected.
+    /// </returns>
+    public static CustPackingSlipJour correctQtyByJourRecId(
+        RecId _packingSlipJourRecId,
+        Qty _newDeliveredQty,
+        InventTransId _inventTransId = '',
+        ItemId _itemId = '')
+    {
+        CustPackingSlipJour packingSlipJour;
+
+        select firstonly packingSlipJour
+            where packingSlipJour.RecId == _packingSlipJourRecId;
+
+        if (!packingSlipJour.RecId)
+        {
+            throw error("@EOLPackingSlip:PackingSlipNotFound");
+        }
+
+        return EOLSalesPackingSlipCorrector::correctQtyOnJournal(
+            packingSlipJour,
+            _newDeliveredQty,
+            _inventTransId,
+            _itemId);
+    }
+
+    /// <summary>
+    /// Finds the packing slip journal by id, optionally scoped to a sales order.
+    /// </summary>
+    /// <param name="_packingSlipId">
+    /// Posted packing slip id.
+    /// </param>
+    /// <param name="_salesId">
+    /// Optional sales order id used to disambiguate the journal.
+    /// </param>
+    /// <returns>
+    /// The packing slip journal.
+    /// </returns>
+    private static CustPackingSlipJour findPackingSlip(
+        PackingSlipId _packingSlipId,
+        SalesId _salesId)
+    {
+        CustPackingSlipJour packingSlipJour;
+        CustPackingSlipJour packingSlipJourCount;
+
+        if (!_packingSlipId)
+        {
+            throw error("@EOLPackingSlip:PackingSlipNotFound");
+        }
+
+        if (_salesId)
+        {
+            select firstonly packingSlipJour
+                where packingSlipJour.PackingSlipId == _packingSlipId
+                   && packingSlipJour.SalesId == _salesId;
+        }
+        else
+        {
+            select count(RecId) from packingSlipJourCount
+                where packingSlipJourCount.PackingSlipId == _packingSlipId;
+
+            if (packingSlipJourCount.RecId > 1)
+            {
+                throw error(strFmt("@EOLPackingSlip:AmbiguousPackingSlip", _packingSlipId));
+            }
+
+            select firstonly packingSlipJour
+                where packingSlipJour.PackingSlipId == _packingSlipId;
+        }
+
+        if (!packingSlipJour.RecId)
+        {
+            throw error(strFmt("@EOLPackingSlip:PackingSlipNotFoundId", _packingSlipId));
+        }
+
+        return packingSlipJour;
+    }
+
+    /// <summary>
+    /// Resolves the packing slip transaction to correct.
+    /// </summary>
+    /// <param name="_packingSlipJour">
+    /// Packing slip journal.
+    /// </param>
+    /// <param name="_inventTransId">
+    /// Optional inventory transaction id of the sales line.
+    /// </param>
+    /// <param name="_itemId">
+    /// Optional item id when the inventory transaction id is not provided.
+    /// </param>
+    /// <returns>
+    /// The packing slip transaction.
+    /// </returns>
+    private static CustPackingSlipTrans findPackingSlipTrans(
+        CustPackingSlipJour _packingSlipJour,
+        InventTransId _inventTransId,
+        ItemId _itemId)
+    {
+        CustPackingSlipTrans packingSlipTrans;
+        CustPackingSlipTrans packingSlipTransCount;
+
+        if (_inventTransId)
+        {
+            select firstonly packingSlipTrans
+                where packingSlipTrans.SalesId == _packingSlipJour.SalesId
+                   && packingSlipTrans.PackingSlipId == _packingSlipJour.PackingSlipId
+                   && packingSlipTrans.DeliveryDate == _packingSlipJour.DeliveryDate
+                   && packingSlipTrans.InventTransId == _inventTransId;
+        }
+        else if (_itemId)
+        {
+            select count(RecId) from packingSlipTransCount
+                where packingSlipTransCount.SalesId == _packingSlipJour.SalesId
+                   && packingSlipTransCount.PackingSlipId == _packingSlipJour.PackingSlipId
+                   && packingSlipTransCount.DeliveryDate == _packingSlipJour.DeliveryDate
+                   && packingSlipTransCount.ItemId == _itemId;
+
+            if (packingSlipTransCount.RecId > 1)
+            {
+                throw error(strFmt("@EOLPackingSlip:AmbiguousItem", _itemId));
+            }
+
+            select firstonly packingSlipTrans
+                where packingSlipTrans.SalesId == _packingSlipJour.SalesId
+                   && packingSlipTrans.PackingSlipId == _packingSlipJour.PackingSlipId
+                   && packingSlipTrans.DeliveryDate == _packingSlipJour.DeliveryDate
+                   && packingSlipTrans.ItemId == _itemId;
+        }
+        else
+        {
+            select count(RecId) from packingSlipTransCount
+                where packingSlipTransCount.SalesId == _packingSlipJour.SalesId
+                   && packingSlipTransCount.PackingSlipId == _packingSlipJour.PackingSlipId
+                   && packingSlipTransCount.DeliveryDate == _packingSlipJour.DeliveryDate;
+
+            if (packingSlipTransCount.RecId > 1)
+            {
+                throw error("@EOLPackingSlip:SpecifyLine");
+            }
+
+            select firstonly packingSlipTrans
+                where packingSlipTrans.SalesId == _packingSlipJour.SalesId
+                   && packingSlipTrans.PackingSlipId == _packingSlipJour.PackingSlipId
+                   && packingSlipTrans.DeliveryDate == _packingSlipJour.DeliveryDate;
+        }
+
+        if (!packingSlipTrans.RecId)
+        {
+            throw error("@EOLPackingSlip:PackingSlipLineNotFound");
+        }
+
+        return packingSlipTrans;
+    }
+
+    /// <summary>
+    /// Validates that the journal can be corrected and that the new quantity is a reduction.
+    /// </summary>
+    /// <param name="_packingSlipJour">
+    /// Packing slip journal.
+    /// </param>
+    /// <param name="_newDeliveredQty">
+    /// Requested remaining delivered quantity.
+    /// </param>
+    private static void validateJournal(
+        CustPackingSlipJour _packingSlipJour,
+        Qty _newDeliveredQty)
+    {
+        boolean canBeCanceled;
+        boolean canBeCorrected;
+
+        if (_newDeliveredQty < 0)
+        {
+            throw error("@EOLPackingSlip:QtyCannotBeNegative");
+        }
+
+        [canBeCanceled, canBeCorrected] = _packingSlipJour.canPackingSlipBeCanceledOrCorrected();
+
+        if (!canBeCorrected)
+        {
+            throw error(strFmt("@EOLPackingSlip:PackingSlipCannotCorrect", _packingSlipJour.PackingSlipId));
+        }
+    }
+
+    /// <summary>
+    /// Builds parm tables and posts the packing slip correction for one line.
+    /// </summary>
+    /// <param name="_packingSlipJour">
+    /// Original packing slip journal to correct.
+    /// </param>
+    /// <param name="_newDeliveredQty">
+    /// New remaining delivered quantity in the sales unit.
+    /// </param>
+    /// <param name="_inventTransId">
+    /// Optional inventory transaction id of the sales line.
+    /// </param>
+    /// <param name="_itemId">
+    /// Optional item id when the inventory transaction id is not provided.
+    /// </param>
+    /// <returns>
+    /// The original packing slip journal that was corrected.
+    /// </returns>
+    private static CustPackingSlipJour correctQtyOnJournal(
+        CustPackingSlipJour _packingSlipJour,
+        Qty _newDeliveredQty,
+        InventTransId _inventTransId,
+        ItemId _itemId)
+    {
+        CustPackingSlipTrans        packingSlipTrans;
+        SalesTable                  salesTable;
+        SalesLine                   salesLine;
+        SalesFormletterParmData     formletterParmData;
+        SalesParmUpdate             salesParmUpdate;
+        SalesParmTable              salesParmTable;
+        SalesParmLine               salesParmLine;
+        SalesFormLetter             salesFormLetter;
+        TransDate                   transDate;
+        InventQty                   reversedInventQty;
+
+        packingSlipTrans = EOLSalesPackingSlipCorrector::findPackingSlipTrans(
+            _packingSlipJour,
+            _inventTransId,
+            _itemId);
+
+        salesTable = SalesTable::find(_packingSlipJour.SalesId);
+
+        if (!salesTable.RecId)
+        {
+            throw error(strFmt("@EOLPackingSlip:SalesOrderNotFound", _packingSlipJour.SalesId));
+        }
+
+        salesLine = SalesLine::findInventTransId(packingSlipTrans.InventTransId);
+
+        if (!salesLine.RecId)
+        {
+            throw error("@EOLPackingSlip:SalesLineNotFound");
+        }
+
+        EOLSalesPackingSlipCorrector::validateJournal(_packingSlipJour, _newDeliveredQty);
+
+        transDate = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
+
+        try
+        {
+            ttsbegin;
+
+            formletterParmData = SalesFormletterParmData::newData(
+                DocumentStatus::PackingSlip,
+                VersioningUpdateType::Correction);
+
+            formletterParmData.parmOnlyCreateParmUpdate(true);
+            formletterParmData.createData(false);
+
+            salesParmUpdate = formletterParmData.parmParmUpdate();
+            salesParmUpdate.SpecQty = SalesUpdate::DeliverNow;
+            salesParmUpdate.DocumentDate = transDate;
+            salesParmUpdate.Proforma = NoYes::No;
+            salesParmUpdate.PrintFormletter = NoYes::No;
+            salesParmUpdate.update();
+
+            salesParmTable.clear();
+            salesParmTable.initValue();
+            salesParmTable.TransDate = transDate;
+            salesParmTable.Ordering = DocumentStatus::PackingSlip;
+            salesParmTable.ParmJobStatus = ParmJobStatus::Waiting;
+            salesParmTable.initFromSalesTable(salesTable);
+            salesParmTable.ParmId = salesParmUpdate.ParmId;
+            salesParmTable.insert();
+
+            salesParmLine.clear();
+            salesParmLine.initValue();
+            salesParmLine.initFromSalesLine(salesLine);
+            salesParmLine.DeliverNow = _newDeliveredQty;
+            salesParmLine.ParmId = salesParmTable.ParmId;
+            salesParmLine.TableRefId = salesParmTable.TableRefId;
+            salesParmLine.setQty(DocumentStatus::PackingSlip, false, true);
+            salesParmLine.setLineAmount(salesLine);
+            salesParmLine.insert();
+
+            if (salesParmLine.InventNow > packingSlipTrans.Qty)
+            {
+                throw error(strFmt("@EOLPackingSlip:QtyMustBeLower", packingSlipTrans.Qty));
+            }
+
+            if (salesParmLine.InventNow == packingSlipTrans.Qty)
+            {
+                throw error("@EOLPackingSlip:QtyUnchanged");
+            }
+
+            reversedInventQty = packingSlipTrans.Qty - salesParmLine.InventNow;
+
+            ttscommit;
+        }
+        catch (Exception::Error)
+        {
+            error("@EOLPackingSlip:ParmBuildFailed");
+            throw;
+        }
+
+        try
+        {
+            salesFormLetter = SalesFormLetter::construct(DocumentStatus::PackingSlip);
+            salesFormLetter.parmVersioningUpdateType(VersioningUpdateType::Correction);
+            salesFormLetter.parmCallerTable(_packingSlipJour);
+            salesFormLetter.allowEmptyTable(true);
+            salesFormLetter.initAllowEmptyTable(true);
+            salesFormLetter.multiForm(true);
+            salesFormLetter.transDate(transDate);
+            salesFormLetter.proforma(false);
+            salesFormLetter.printFormLetter(false);
+            salesFormLetter.usePrintManagement(false);
+            salesFormLetter.specQty(SalesUpdate::DeliverNow);
+            salesFormLetter.salesTable(salesTable);
+            salesFormLetter.parmId(salesParmTable.ParmId);
+            salesFormLetter.salesParmUpdate(formletterParmData.parmParmUpdate());
+            salesFormLetter.run();
+        }
+        catch (Exception::Error)
+        {
+            error("@EOLPackingSlip:PostingFailed");
+            throw;
+        }
+
+        info(strFmt("@EOLPackingSlip:CorrectionPosted",
+            _packingSlipJour.PackingSlipId,
+            salesLine.ItemId,
+            _newDeliveredQty,
+            reversedInventQty));
+
+        return _packingSlipJour;
+    }
+
+}

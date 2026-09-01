@@ -1,0 +1,15 @@
+PackingSlipNotFound=The packing slip journal was not found.
+PackingSlipNotFoundId=Packing slip %1 was not found.
+AmbiguousPackingSlip=Several packing slips use id %1. Pass the sales order id.
+AmbiguousItem=Several packing slip lines use item %1. Pass InventTransId.
+SpecifyLine=The packing slip has several lines. Pass ItemId or InventTransId.
+PackingSlipLineNotFound=The packing slip line was not found.
+PackingSlipCannotCorrect=Packing slip %1 cannot be corrected (already invoiced, warehouse-managed, or not eligible).
+QtyCannotBeNegative=The new delivered quantity cannot be negative.
+QtyMustBeLower=The new delivered quantity must be lower than the packed inventory quantity %1. To increase quantity, post a new packing slip.
+QtyUnchanged=The new delivered quantity is equal to the packed quantity. Nothing to correct.
+SalesOrderNotFound=Sales order %1 was not found.
+SalesLineNotFound=The sales line of the packing slip transaction was not found.
+ParmBuildFailed=Failed to build packing slip correction parameters.
+PostingFailed=Failed to post the packing slip correction.
+CorrectionPosted=Packing slip %1, item %2: delivered quantity set to %3 (reversed inventory qty %4).
