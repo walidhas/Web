@@ -1,0 +1,37 @@
+/// <summary>
+/// Runnable job: correct one posted packing slip line to a specific delivered quantity.
+/// Fill the constants in <c>main</c>, compile, then Open / Run the class in the sales order company.
+/// </summary>
+public class EOLSalesPackingSlipCorrectorJob
+{
+    /// <summary>
+    /// Entry point.
+    /// </summary>
+    /// <param name="_args">
+    /// Unused.
+    /// </param>
+    public static void main(Args _args)
+    {
+        PackingSlipId packingSlipId;
+        SalesId       salesId;
+        ItemId        itemId;
+        InventTransId inventTransId;
+        Qty           newDeliveredQty;
+
+        // ===== Fill these values before running =====
+        packingSlipId   = 'BL-000123';
+        salesId         = 'SO-000456';
+        itemId          = 'ART-001';
+        inventTransId   = '';
+        newDeliveredQty = 7;
+        // ============================================
+
+        EOLSalesPackingSlipCorrector::correctQty(
+            packingSlipId,
+            newDeliveredQty,
+            inventTransId,
+            itemId,
+            salesId);
+    }
+
+}

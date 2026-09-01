@@ -1,0 +1,15 @@
+PackingSlipNotFound=Le journal de bon de livraison est introuvable.
+PackingSlipNotFoundId=Le bon de livraison %1 est introuvable.
+AmbiguousPackingSlip=Plusieurs bons de livraison utilisent l'identifiant %1. Indiquez le numéro de commande.
+AmbiguousItem=Plusieurs lignes du BL utilisent l'article %1. Indiquez InventTransId.
+SpecifyLine=Le bon de livraison contient plusieurs lignes. Indiquez ItemId ou InventTransId.
+PackingSlipLineNotFound=La ligne de bon de livraison est introuvable.
+PackingSlipCannotCorrect=Le bon de livraison %1 ne peut pas être corrigé (déjà facturé, géré en entrepôt avancé, ou non éligible).
+QtyCannotBeNegative=La nouvelle quantité livrée ne peut pas être négative.
+QtyMustBeLower=La nouvelle quantité livrée doit être inférieure à la quantité d'inventaire déjà livrée %1. Pour augmenter, poster un nouveau BL.
+QtyUnchanged=La nouvelle quantité livrée est identique à la quantité déjà livrée. Aucune correction.
+SalesOrderNotFound=La commande client %1 est introuvable.
+SalesLineNotFound=La ligne de commande liée à la transaction du BL est introuvable.
+ParmBuildFailed=Échec de la construction des paramètres de correction du BL.
+PostingFailed=Échec de la validation de la correction du bon de livraison.
+CorrectionPosted=Bon de livraison %1, article %2 : quantité livrée positionnée à %3 (quantité d'inventaire stornée %4).
