@@ -27,7 +27,6 @@ private void insertParmTableData()
     }
 
     purchParmUpdate.SpecQty = PurchUpdate::ReceiveNow;
-    purchParmUpdate.DocumentDate = packingSlipDate;
     purchParmUpdate.Proforma = NoYes::No;
     purchParmUpdate.update();
 
