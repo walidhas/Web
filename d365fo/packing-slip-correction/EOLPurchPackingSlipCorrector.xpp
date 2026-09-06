@@ -1,12 +1,13 @@
 /// <summary>
 /// Posts a product receipt (purchase packing slip) correction so a line remains
-/// received at a specific quantity. Same behavior as Procurement and sourcing
-/// journals Product receipt > Correct.
+/// received at a specific quantity. Correction always targets the warehouse
+/// virtual receipt location InventLocation.EOLWMSLocationIdDefaultVirtualReceipt.
 /// </summary>
 public class EOLPurchPackingSlipCorrector
 {
     /// <summary>
-    /// Corrects one posted product receipt line to a new remaining received quantity.
+    /// Corrects one posted product receipt line to a new remaining received quantity
+    /// on the default virtual receipt location of the warehouse.
     /// </summary>
     /// <param name="_packingSlipId">
     /// Posted product receipt / purchase packing slip id.
@@ -19,10 +20,7 @@ public class EOLPurchPackingSlipCorrector
     /// Purchase order id. Recommended when packing slip ids are not unique.
     /// </param>
     /// <param name="_inventTransId">
-    /// Purchase line inventory transaction id. Required when the receipt has several lines.
-    /// </param>
-    /// <param name="_wmsLocationId">
-    /// Optional warehouse location filter.
+    /// Purchase line inventory transaction id. Required when several virtual lines match.
     /// </param>
     /// <returns>
     /// The original product receipt journal that was corrected.
@@ -31,14 +29,14 @@ public class EOLPurchPackingSlipCorrector
         Num _packingSlipId,
         Qty _newReceiveQty,
         PurchId _purchId = '',
-        InventTransId _inventTransId = '',
-        WMSLocationId _wmsLocationId = '')
+        InventTransId _inventTransId = '')
     {
         VendPackingSlipJour             packingSlipJour;
         VendPackingSlipTrans            packingSlipTrans;
         PurchTable                      purchTable;
         PurchLine                       purchLine;
         InventDim                       inventDim;
+        WMSLocationId                   virtualLocationId;
         PurchFormletterParmData         formletterParmData;
         PurchParmUpdate                 purchParmUpdate;
         PurchParmTable                  purchParmTable;
@@ -47,6 +45,7 @@ public class EOLPurchPackingSlipCorrector
         TransDate                       transDate;
         Counter                         matchingLineCount;
         boolean                         lineCreated;
+        WMSLocationId                   correctedLocationId;
 
         if (_newReceiveQty < 0)
         {
@@ -61,14 +60,13 @@ public class EOLPurchPackingSlipCorrector
             throw error(strFmt("@EOLPackingSlip:PurchOrderNotFound", packingSlipJour.PurchId));
         }
 
-        matchingLineCount = EOLPurchPackingSlipCorrector::countMatchingLines(
+        matchingLineCount = EOLPurchPackingSlipCorrector::countVirtualLines(
             packingSlipJour,
-            _inventTransId,
-            _wmsLocationId);
+            _inventTransId);
 
         if (matchingLineCount == 0)
         {
-            throw error("@EOLPackingSlip:PackingSlipLineNotFound");
+            throw error("@EOLPackingSlip:NoLineOnVirtualLocation");
         }
 
         if (!_inventTransId && matchingLineCount > 1)
@@ -78,6 +76,7 @@ public class EOLPurchPackingSlipCorrector
 
         transDate = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
         lineCreated = false;
+        correctedLocationId = '';
 
         ttsbegin;
 
@@ -134,13 +133,15 @@ public class EOLPurchPackingSlipCorrector
                 continue;
             }
 
-            if (_wmsLocationId)
+            inventDim = EOLPurchPackingSlipCorrector::packingSlipInventDim(
+                packingSlipTrans,
+                purchLine);
+            virtualLocationId = EOLPurchPackingSlipCorrector::defaultVirtualReceiptLocation(
+                inventDim.InventLocationId);
+
+            if (inventDim.wMSLocationId != virtualLocationId)
             {
-                inventDim = purchLine.inventDim();
-                if (inventDim.wMSLocationId != _wmsLocationId)
-                {
-                    continue;
-                }
+                continue;
             }
 
             if (_newReceiveQty > packingSlipTrans.Qty)
@@ -156,6 +157,7 @@ public class EOLPurchPackingSlipCorrector
             purchParmLine.clear();
             purchParmLine.initValue();
             purchParmLine.initFromPurchLine(purchLine);
+            purchParmLine.InventDimId = inventDim.inventDimId;
             purchParmLine.ParmId = purchParmTable.ParmId;
             purchParmLine.TableRefId = purchParmTable.TableRefId;
             purchParmLine.ReceiveNow = _newReceiveQty;
@@ -166,11 +168,12 @@ public class EOLPurchPackingSlipCorrector
             purchParmLine.setLineAmount();
             purchParmLine.insert();
             lineCreated = true;
+            correctedLocationId = virtualLocationId;
         }
 
         if (!lineCreated)
         {
-            throw error("@EOLPackingSlip:PackingSlipLineNotFound");
+            throw error("@EOLPackingSlip:NoLineOnVirtualLocation");
         }
 
         ttscommit;
@@ -193,9 +196,10 @@ public class EOLPurchPackingSlipCorrector
             throw;
         }
 
-        info(strFmt("@EOLPackingSlip:PurchCorrectionPosted",
+        info(strFmt("@EOLPackingSlip:PurchCorrectionPostedOnVirtual",
             packingSlipJour.PackingSlipId,
-            _newReceiveQty));
+            _newReceiveQty,
+            correctedLocationId));
 
         return packingSlipJour;
     }
@@ -253,7 +257,76 @@ public class EOLPurchPackingSlipCorrector
     }
 
     /// <summary>
-    /// Counts product receipt lines that match the optional filters.
+    /// Returns the default virtual receipt warehouse location for a warehouse.
+    /// </summary>
+    /// <param name="_inventLocationId">
+    /// Warehouse id.
+    /// </param>
+    /// <returns>
+    /// Value of <c>InventLocation.EOLWMSLocationIdDefaultVirtualReceipt</c>.
+    /// </returns>
+    private static WMSLocationId defaultVirtualReceiptLocation(InventLocationId _inventLocationId)
+    {
+        InventLocation inventLocation;
+
+        if (!_inventLocationId)
+        {
+            throw error("@EOLPackingSlip:WarehouseNotFound");
+        }
+
+        inventLocation = InventLocation::find(_inventLocationId);
+
+        if (!inventLocation.RecId)
+        {
+            throw error(strFmt("@EOLPackingSlip:WarehouseNotFoundId", _inventLocationId));
+        }
+
+        if (!inventLocation.EOLWMSLocationIdDefaultVirtualReceipt)
+        {
+            throw error(strFmt("@EOLPackingSlip:VirtualReceiptLocNotSetup", _inventLocationId));
+        }
+
+        return inventLocation.EOLWMSLocationIdDefaultVirtualReceipt;
+    }
+
+    /// <summary>
+    /// Resolves the inventory dimension of a product receipt transaction.
+    /// </summary>
+    /// <param name="_packingSlipTrans">
+    /// Product receipt transaction.
+    /// </param>
+    /// <param name="_purchLine">
+    /// Related purchase line, used when the transaction has no invent dim.
+    /// </param>
+    /// <returns>
+    /// Inventory dimension of the receipt.
+    /// </returns>
+    private static InventDim packingSlipInventDim(
+        VendPackingSlipTrans _packingSlipTrans,
+        PurchLine _purchLine)
+    {
+        InventDim inventDim;
+
+        if (_packingSlipTrans.InventDimId)
+        {
+            inventDim = InventDim::find(_packingSlipTrans.InventDimId);
+        }
+
+        if (!inventDim.RecId)
+        {
+            inventDim = _purchLine.inventDim();
+        }
+
+        if (!inventDim.RecId)
+        {
+            throw error("@EOLPackingSlip:PackingSlipLineNotFound");
+        }
+
+        return inventDim;
+    }
+
+    /// <summary>
+    /// Counts product receipt lines posted on the warehouse virtual receipt location.
     /// </summary>
     /// <param name="_packingSlipJour">
     /// Product receipt journal.
@@ -261,20 +334,17 @@ public class EOLPurchPackingSlipCorrector
     /// <param name="_inventTransId">
     /// Optional inventory transaction id.
     /// </param>
-    /// <param name="_wmsLocationId">
-    /// Optional warehouse location.
-    /// </param>
     /// <returns>
-    /// Number of matching receipt lines.
+    /// Number of matching virtual receipt lines.
     /// </returns>
-    private static Counter countMatchingLines(
+    private static Counter countVirtualLines(
         VendPackingSlipJour _packingSlipJour,
-        InventTransId _inventTransId,
-        WMSLocationId _wmsLocationId)
+        InventTransId _inventTransId)
     {
         VendPackingSlipTrans packingSlipTrans;
         PurchLine            purchLine;
         InventDim            inventDim;
+        WMSLocationId        virtualLocationId;
         Counter              lineCount;
 
         lineCount = 0;
@@ -289,26 +359,26 @@ public class EOLPurchPackingSlipCorrector
                 continue;
             }
 
-            if (_wmsLocationId)
+            purchLine.clear();
+
+            select firstonly purchLine
+                where purchLine.InventTransId == packingSlipTrans.InventTransId;
+
+            if (!purchLine.RecId)
             {
-                purchLine.clear();
-
-                select firstonly purchLine
-                    where purchLine.InventTransId == packingSlipTrans.InventTransId;
-
-                if (!purchLine.RecId)
-                {
-                    continue;
-                }
-
-                inventDim = purchLine.inventDim();
-                if (inventDim.wMSLocationId != _wmsLocationId)
-                {
-                    continue;
-                }
+                continue;
             }
 
-            lineCount++;
+            inventDim = EOLPurchPackingSlipCorrector::packingSlipInventDim(
+                packingSlipTrans,
+                purchLine);
+            virtualLocationId = EOLPurchPackingSlipCorrector::defaultVirtualReceiptLocation(
+                inventDim.InventLocationId);
+
+            if (inventDim.wMSLocationId == virtualLocationId)
+            {
+                lineCount++;
+            }
         }
 
         return lineCount;

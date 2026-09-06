@@ -4,8 +4,8 @@
   <SourceCode>
     <Declaration><![CDATA[
 /// <summary>
-/// Runnable job: correct an existing purchase product receipt (packing slip)
-/// to a new remaining received quantity.
+/// Runnable job: correct an existing purchase product receipt on the warehouse
+/// virtual location InventLocation.EOLWMSLocationIdDefaultVirtualReceipt.
 /// Fill the constants in <c>main</c>, compile, then Open / Run in the purchase
 /// order company. If started from a VendPackingSlipJour record, that journal is used.
 /// </summary>
@@ -28,7 +28,6 @@ public class EOLPurchPackingSlipCorrectorJob
         Num                 packingSlipId;
         PurchId             purchId;
         InventTransId       inventTransId;
-        WMSLocationId       wmsLocationId;
         Qty                 newReceiveQty;
         VendPackingSlipJour packingSlipJour;
 
@@ -36,7 +35,6 @@ public class EOLPurchPackingSlipCorrectorJob
         packingSlipId   = 'PR-000123';
         purchId         = 'PO-000456';
         inventTransId   = '';
-        wmsLocationId   = '';
         newReceiveQty   = 7;
         // ============================================
 
@@ -61,8 +59,7 @@ public class EOLPurchPackingSlipCorrectorJob
             packingSlipId,
             newReceiveQty,
             purchId,
-            inventTransId,
-            wmsLocationId);
+            inventTransId);
     }
 ]]></Source>
       </Method>
