@@ -1,19 +1,16 @@
 /// <summary>
 /// Drop-in replacement for insertParmTableData.
-/// The crash is not SpecQty: createData(false) with VersioningUpdateType::Correction
-/// calls PurchFormletterParmDataPackingSlip.selectChooseLines -> insertParmLine
-/// where systemSequence is null (NRE on reserveValues).
-/// Build parm records with Initial + init(), then apply Correction on PurchFormLetter.run().
+/// Correction is always posted on InventLocation.EOLWMSLocationIdDefaultVirtualReceipt.
 /// </summary>
-private void insertParmTableData(WMSLocationId _wmsLocationId)
+private void insertParmTableData()
 {
-    InventDim            inventDim;
-    Qty                  newReceiveQty;
+    InventDim       inventDim;
+    InventLocation  inventLocation;
+    WMSLocationId   virtualLocationId;
+    Qty             newReceiveQty;
 
-    // Target remaining received quantity (same meaning as the Update column on Correct).
     newReceiveQty = 7;
 
-    // 1) Initial + init() : create PurchParmUpdate only, do not choose journal lines.
     purchFormLetterParmData = PurchFormletterParmData::newData(
         DocumentStatus::PackingSlip,
         VersioningUpdateType::Initial);
@@ -29,13 +26,11 @@ private void insertParmTableData(WMSLocationId _wmsLocationId)
         throw error("PurchParmUpdate was not created.");
     }
 
-    // ReceiveNow = specific qty on PurchParmLine. All would ignore that qty.
     purchParmUpdate.SpecQty = PurchUpdate::ReceiveNow;
     purchParmUpdate.DocumentDate = packingSlipDate;
     purchParmUpdate.Proforma = NoYes::No;
     purchParmUpdate.update();
 
-    // 2) Manually build PurchParmTable.
     purchParmTable.clear();
     purchParmTable.initValue();
     purchParmTable.TransDate = packingSlipDate;
@@ -47,17 +42,9 @@ private void insertParmTableData(WMSLocationId _wmsLocationId)
     purchParmTable.VendPackingSlipJour = vendPackingSlipJour.RecId;
     purchParmTable.insert();
 
-    // 3) Manually build PurchParmLine for the requested warehouse location.
     while select purchLine
         where purchLine.PurchId == purchTable.PurchId
     {
-        inventDim = purchLine.inventDim();
-
-        if (_wmsLocationId && inventDim.wMSLocationId != _wmsLocationId)
-        {
-            continue;
-        }
-
         select firstonly vendPackingSlipTrans
             where vendPackingSlipTrans.OrigPurchid == purchLine.PurchId
                && vendPackingSlipTrans.PackingSlipId == vendPackingSlipJour.PackingSlipId
@@ -68,9 +55,33 @@ private void insertParmTableData(WMSLocationId _wmsLocationId)
             continue;
         }
 
+        if (vendPackingSlipTrans.InventDimId)
+        {
+            inventDim = InventDim::find(vendPackingSlipTrans.InventDimId);
+        }
+        else
+        {
+            inventDim = purchLine.inventDim();
+        }
+
+        inventLocation = InventLocation::find(inventDim.InventLocationId);
+
+        if (!inventLocation.EOLWMSLocationIdDefaultVirtualReceipt)
+        {
+            throw error(strFmt("@EOLPackingSlip:VirtualReceiptLocNotSetup", inventDim.InventLocationId));
+        }
+
+        virtualLocationId = inventLocation.EOLWMSLocationIdDefaultVirtualReceipt;
+
+        if (inventDim.wMSLocationId != virtualLocationId)
+        {
+            continue;
+        }
+
         purchParmLine.clear();
         purchParmLine.initValue();
         purchParmLine.initFromPurchLine(purchLine);
+        purchParmLine.InventDimId = inventDim.inventDimId;
         purchParmLine.ParmId = purchParmTable.ParmId;
         purchParmLine.TableRefId = purchParmTable.TableRefId;
         purchParmLine.ReceiveNow = newReceiveQty;

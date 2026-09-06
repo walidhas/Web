@@ -13,12 +13,13 @@ Classe runnable : `EOLPurchPackingSlipCorrectorJob`.
 ```x++
 packingSlipId   = 'PR-000123';  // bon de réception / packing slip achat déjà posté
 purchId         = 'PO-000456';
-inventTransId   = '';           // obligatoire si le BL a plusieurs lignes
-wmsLocationId   = '';           // optionnel
+inventTransId   = '';           // obligatoire si plusieurs lignes virtuelles
 newReceiveQty   = 7;            // nouvelle qté qui doit rester reçue
 ```
 
 4. Compiler, puis **Open / Run** dans la société de la commande fournisseur.
+
+La correction ne porte **que** sur l’emplacement virtuel du magasin : `InventLocation.EOLWMSLocationIdDefaultVirtualReceipt`. Les lignes reçues sur un autre emplacement sont ignorées. Si le champ n’est pas renseigné, le job s’arrête.
 
 `newReceiveQty` = colonne **Update** du formulaire standard **Corriger** (pas la qté à storno). BL à 10 → vous voulez 7 : passer `7`.
 
