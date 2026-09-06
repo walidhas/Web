@@ -1,22 +1,25 @@
 /// <summary>
-/// Posts a product receipt (purchase packing slip) correction to a target received quantity.
+/// Posts a product receipt (purchase packing slip) correction so a line remains
+/// received at a specific quantity. Same behavior as Procurement and sourcing
+/// journals Product receipt > Correct.
 /// </summary>
 public class EOLPurchPackingSlipCorrector
 {
     /// <summary>
-    /// Corrects one product receipt line to a new remaining received quantity.
+    /// Corrects one posted product receipt line to a new remaining received quantity.
     /// </summary>
     /// <param name="_packingSlipId">
-    /// Posted product receipt id.
+    /// Posted product receipt / purchase packing slip id.
     /// </param>
     /// <param name="_newReceiveQty">
     /// New quantity that must remain received (Update column on the Correct form).
+    /// Must be greater than or equal to 0 and lower than the originally received quantity.
     /// </param>
     /// <param name="_purchId">
     /// Purchase order id. Recommended when packing slip ids are not unique.
     /// </param>
     /// <param name="_inventTransId">
-    /// Purchase line inventory transaction id. Required when several lines match.
+    /// Purchase line inventory transaction id. Required when the receipt has several lines.
     /// </param>
     /// <param name="_wmsLocationId">
     /// Optional warehouse location filter.
@@ -42,7 +45,13 @@ public class EOLPurchPackingSlipCorrector
         PurchParmLine                   purchParmLine;
         PurchFormLetter                 purchFormLetter;
         TransDate                       transDate;
+        Counter                         matchingLineCount;
         boolean                         lineCreated;
+
+        if (_newReceiveQty < 0)
+        {
+            throw error("@EOLPackingSlip:QtyCannotBeNegative");
+        }
 
         packingSlipJour = EOLPurchPackingSlipCorrector::findJournal(_packingSlipId, _purchId);
         purchTable = PurchTable::find(packingSlipJour.PurchId);
@@ -52,11 +61,28 @@ public class EOLPurchPackingSlipCorrector
             throw error(strFmt("@EOLPackingSlip:PurchOrderNotFound", packingSlipJour.PurchId));
         }
 
+        matchingLineCount = EOLPurchPackingSlipCorrector::countMatchingLines(
+            packingSlipJour,
+            _inventTransId,
+            _wmsLocationId);
+
+        if (matchingLineCount == 0)
+        {
+            throw error("@EOLPackingSlip:PackingSlipLineNotFound");
+        }
+
+        if (!_inventTransId && matchingLineCount > 1)
+        {
+            throw error("@EOLPackingSlip:SpecifyLine");
+        }
+
         transDate = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
         lineCreated = false;
 
         ttsbegin;
 
+        // Initial + init(): Correction in newData() makes createData() choose lines
+        // while systemSequence is still null (NullReferenceException).
         formletterParmData = PurchFormletterParmData::newData(
             DocumentStatus::PackingSlip,
             VersioningUpdateType::Initial);
@@ -91,13 +117,17 @@ public class EOLPurchPackingSlipCorrector
         while select packingSlipTrans
             where packingSlipTrans.OrigPurchid == packingSlipJour.PurchId
                && packingSlipTrans.PackingSlipId == packingSlipJour.PackingSlipId
+               && packingSlipTrans.DeliveryDate == packingSlipJour.DeliveryDate
         {
             if (_inventTransId && packingSlipTrans.InventTransId != _inventTransId)
             {
                 continue;
             }
 
-            purchLine = PurchLine::findInventTransId(packingSlipTrans.InventTransId);
+            purchLine.clear();
+
+            select firstonly purchLine
+                where purchLine.InventTransId == packingSlipTrans.InventTransId;
 
             if (!purchLine.RecId)
             {
@@ -111,6 +141,16 @@ public class EOLPurchPackingSlipCorrector
                 {
                     continue;
                 }
+            }
+
+            if (_newReceiveQty > packingSlipTrans.Qty)
+            {
+                throw error(strFmt("@EOLPackingSlip:QtyMustBeLower", packingSlipTrans.Qty));
+            }
+
+            if (_newReceiveQty == packingSlipTrans.Qty)
+            {
+                throw error("@EOLPackingSlip:QtyUnchanged");
             }
 
             purchParmLine.clear();
@@ -135,15 +175,23 @@ public class EOLPurchPackingSlipCorrector
 
         ttscommit;
 
-        purchFormLetter = PurchFormLetter::construct(DocumentStatus::PackingSlip);
-        purchFormLetter.parmVersioningUpdateType(VersioningUpdateType::Correction);
-        purchFormLetter.parmCallerTable(packingSlipJour);
-        purchFormLetter.purchParmUpdate(formletterParmData.parmParmUpdate());
-        purchFormLetter.parmId(purchParmTable.ParmId);
-        purchFormLetter.specQty(PurchUpdate::ReceiveNow);
-        purchFormLetter.transDate(transDate);
-        purchFormLetter.proforma(false);
-        purchFormLetter.run();
+        try
+        {
+            purchFormLetter = PurchFormLetter::construct(DocumentStatus::PackingSlip);
+            purchFormLetter.parmVersioningUpdateType(VersioningUpdateType::Correction);
+            purchFormLetter.parmCallerTable(packingSlipJour);
+            purchFormLetter.purchParmUpdate(formletterParmData.parmParmUpdate());
+            purchFormLetter.parmId(purchParmTable.ParmId);
+            purchFormLetter.specQty(PurchUpdate::ReceiveNow);
+            purchFormLetter.transDate(transDate);
+            purchFormLetter.proforma(false);
+            purchFormLetter.run();
+        }
+        catch (Exception::Error)
+        {
+            error("@EOLPackingSlip:PostingFailed");
+            throw;
+        }
 
         info(strFmt("@EOLPackingSlip:PurchCorrectionPosted",
             packingSlipJour.PackingSlipId,
@@ -202,6 +250,68 @@ public class EOLPurchPackingSlipCorrector
         }
 
         return packingSlipJour;
+    }
+
+    /// <summary>
+    /// Counts product receipt lines that match the optional filters.
+    /// </summary>
+    /// <param name="_packingSlipJour">
+    /// Product receipt journal.
+    /// </param>
+    /// <param name="_inventTransId">
+    /// Optional inventory transaction id.
+    /// </param>
+    /// <param name="_wmsLocationId">
+    /// Optional warehouse location.
+    /// </param>
+    /// <returns>
+    /// Number of matching receipt lines.
+    /// </returns>
+    private static Counter countMatchingLines(
+        VendPackingSlipJour _packingSlipJour,
+        InventTransId _inventTransId,
+        WMSLocationId _wmsLocationId)
+    {
+        VendPackingSlipTrans packingSlipTrans;
+        PurchLine            purchLine;
+        InventDim            inventDim;
+        Counter              lineCount;
+
+        lineCount = 0;
+
+        while select packingSlipTrans
+            where packingSlipTrans.OrigPurchid == _packingSlipJour.PurchId
+               && packingSlipTrans.PackingSlipId == _packingSlipJour.PackingSlipId
+               && packingSlipTrans.DeliveryDate == _packingSlipJour.DeliveryDate
+        {
+            if (_inventTransId && packingSlipTrans.InventTransId != _inventTransId)
+            {
+                continue;
+            }
+
+            if (_wmsLocationId)
+            {
+                purchLine.clear();
+
+                select firstonly purchLine
+                    where purchLine.InventTransId == packingSlipTrans.InventTransId;
+
+                if (!purchLine.RecId)
+                {
+                    continue;
+                }
+
+                inventDim = purchLine.inventDim();
+                if (inventDim.wMSLocationId != _wmsLocationId)
+                {
+                    continue;
+                }
+            }
+
+            lineCount++;
+        }
+
+        return lineCount;
     }
 
 }

@@ -1,6 +1,6 @@
 PackingSlipNotFound=The packing slip journal was not found.
 PackingSlipNotFoundId=Packing slip %1 was not found.
-AmbiguousPackingSlip=Several packing slips use id %1. Pass the sales order id.
+AmbiguousPackingSlip=Several packing slips use id %1. Pass the sales or purchase order id.
 AmbiguousItem=Several packing slip lines use item %1. Pass InventTransId.
 SpecifyLine=The packing slip has several lines. Pass ItemId or InventTransId.
 PackingSlipLineNotFound=The packing slip line was not found.
@@ -15,3 +15,4 @@ PostingFailed=Failed to post the packing slip correction.
 CorrectionPosted=Packing slip %1, item %2: delivered quantity set to %3 (reversed inventory qty %4).
 PurchOrderNotFound=Purchase order %1 was not found.
 PurchCorrectionPosted=Product receipt %1: received quantity set to %2.
+PurchJobStarting=Correcting product receipt %1 on purchase order %2 to quantity %3.

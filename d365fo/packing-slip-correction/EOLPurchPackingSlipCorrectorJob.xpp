@@ -1,5 +1,8 @@
 /// <summary>
-/// Runnable job: correct one posted product receipt to a specific received quantity.
+/// Runnable job: correct an existing purchase product receipt (packing slip)
+/// to a new remaining received quantity.
+/// Fill the constants in <c>main</c>, compile, then Open / Run in the purchase
+/// order company. If started from a VendPackingSlipJour record, that journal is used.
 /// </summary>
 public class EOLPurchPackingSlipCorrectorJob
 {
@@ -7,21 +10,41 @@ public class EOLPurchPackingSlipCorrectorJob
     /// Entry point.
     /// </summary>
     /// <param name="_args">
-    /// Unused.
+    /// Optional. When the caller record is <c>VendPackingSlipJour</c>, its ids are used.
     /// </param>
     public static void main(Args _args)
     {
-        Num           packingSlipId;
-        PurchId       purchId;
-        InventTransId inventTransId;
-        WMSLocationId wmsLocationId;
-        Qty           newReceiveQty;
+        Num                 packingSlipId;
+        PurchId             purchId;
+        InventTransId       inventTransId;
+        WMSLocationId       wmsLocationId;
+        Qty                 newReceiveQty;
+        VendPackingSlipJour packingSlipJour;
 
-        packingSlipId   = 'BL-000123';
+        // ===== Fill these values before running =====
+        packingSlipId   = 'PR-000123';
         purchId         = 'PO-000456';
         inventTransId   = '';
         wmsLocationId   = '';
         newReceiveQty   = 7;
+        // ============================================
+
+        if (_args && _args.record() && _args.record().TableId == tableNum(VendPackingSlipJour))
+        {
+            packingSlipJour = _args.record();
+            packingSlipId = packingSlipJour.PackingSlipId;
+            purchId = packingSlipJour.PurchId;
+        }
+
+        if (!packingSlipId)
+        {
+            throw error("@EOLPackingSlip:PackingSlipNotFound");
+        }
+
+        info(strFmt("@EOLPackingSlip:PurchJobStarting",
+            packingSlipId,
+            purchId,
+            newReceiveQty));
 
         EOLPurchPackingSlipCorrector::correctQty(
             packingSlipId,

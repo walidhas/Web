@@ -1,6 +1,6 @@
 PackingSlipNotFound=Le journal de bon de livraison est introuvable.
 PackingSlipNotFoundId=Le bon de livraison %1 est introuvable.
-AmbiguousPackingSlip=Plusieurs bons de livraison utilisent l'identifiant %1. Indiquez le numéro de commande.
+AmbiguousPackingSlip=Plusieurs bons de livraison utilisent l'identifiant %1. Indiquez le numéro de commande client ou fournisseur.
 AmbiguousItem=Plusieurs lignes du BL utilisent l'article %1. Indiquez InventTransId.
 SpecifyLine=Le bon de livraison contient plusieurs lignes. Indiquez ItemId ou InventTransId.
 PackingSlipLineNotFound=La ligne de bon de livraison est introuvable.
@@ -15,3 +15,4 @@ PostingFailed=Échec de la validation de la correction du bon de livraison.
 CorrectionPosted=Bon de livraison %1, article %2 : quantité livrée positionnée à %3 (quantité d'inventaire stornée %4).
 PurchOrderNotFound=La commande fournisseur %1 est introuvable.
 PurchCorrectionPosted=Bon de réception %1 : quantité reçue positionnée à %2.
+PurchJobStarting=Correction du bon de réception %1 de la commande %2 vers la quantité %3.
