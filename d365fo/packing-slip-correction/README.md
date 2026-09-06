@@ -13,8 +13,8 @@ Classe runnable : `EOLPurchPackingSlipCorrectorJob`.
 ```x++
 packingSlipId   = 'PR-000123';  // bon de réception / packing slip achat déjà posté
 purchId         = 'PO-000456';
-inventTransId   = '';           // obligatoire si plusieurs lignes virtuelles
-wmsLocationId   = '';           // ignoré : l’emplacement virtuel du magasin est utilisé
+inventTransId   = '';           // obligatoire si plusieurs lignes
+wmsLocationId   = '';           // ignoré
 newReceiveQty   = 7;            // nouvelle qté qui doit rester reçue
 ```
 
@@ -22,7 +22,14 @@ newReceiveQty   = 7;            // nouvelle qté qui doit rester reçue
 
 4. Compiler, puis **Open / Run** dans la société de la commande fournisseur.
 
-La correction ne porte **que** sur l’emplacement virtuel du magasin : `InventLocation.EOLWMSLocationIdDefaultVirtualReceipt`. Les lignes reçues sur un autre emplacement sont ignorées. Si le champ n’est pas renseigné, le job s’arrête.
+La correction **écrit l’emplacement Virtual** dans `PurchParmLine.InventDimId` :
+
+1. Lire le magasin de la ligne / du BL (`InventDim.InventLocationId`).
+2. Lire `InventLocation.EOLWMSLocationIdDefaultVirtualReceipt`.
+3. Recopier la combinaison (site, magasin, lot, n° de série, …), remplacer `wMSLocationId` par Virtual, puis `InventDim::findOrCreate`.
+4. Assigner `purchParmLine.InventDimId = inventDim.inventDimId`.
+
+Si le champ Virtual n’est pas renseigné sur le magasin, le job s’arrête.
 
 `newReceiveQty` = colonne **Update** du formulaire standard **Corriger** (pas la qté à storno). BL à 10 → vous voulez 7 : passer `7`.
 

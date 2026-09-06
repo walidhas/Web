@@ -25,7 +25,7 @@ public class EOLPurchPackingSlipCorrectorJob
         packingSlipId   = 'PR-000123';
         purchId         = 'PO-000456';
         inventTransId   = '';
-        wmsLocationId   = '';
+        wmsLocationId   = '';           // ignored; Virtual comes from InventLocation
         newReceiveQty   = 7;
         // ============================================
 

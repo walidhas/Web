@@ -20,11 +20,11 @@ public class EOLPurchPackingSlipCorrector
     /// Purchase order id. Recommended when packing slip ids are not unique.
     /// </param>
     /// <param name="_inventTransId">
-    /// Purchase line inventory transaction id. Required when several virtual lines match.
+    /// Purchase line inventory transaction id. Required when the receipt has several lines.
     /// </param>
     /// <param name="_wmsLocationId">
-    /// Unused. Kept so callers compiled against the previous signature still build.
-    /// The location always comes from InventLocation.EOLWMSLocationIdDefaultVirtualReceipt.
+    /// Unused. The location written on <c>PurchParmLine.InventDimId</c> is always
+    /// <c>InventLocation.EOLWMSLocationIdDefaultVirtualReceipt</c>.
     /// </param>
     /// <returns>
     /// The original product receipt journal that was corrected.
@@ -65,13 +65,13 @@ public class EOLPurchPackingSlipCorrector
             throw error(strFmt("@EOLPackingSlip:PurchOrderNotFound", packingSlipJour.PurchId));
         }
 
-        matchingLineCount = EOLPurchPackingSlipCorrector::countVirtualLines(
+        matchingLineCount = EOLPurchPackingSlipCorrector::countMatchingLines(
             packingSlipJour,
             _inventTransId);
 
         if (matchingLineCount == 0)
         {
-            throw error("@EOLPackingSlip:NoLineOnVirtualLocation");
+            throw error("@EOLPackingSlip:PackingSlipLineNotFound");
         }
 
         if (!_inventTransId && matchingLineCount > 1)
@@ -137,16 +137,11 @@ public class EOLPurchPackingSlipCorrector
                 continue;
             }
 
-            inventDim = EOLPurchPackingSlipCorrector::packingSlipInventDim(
-                packingSlipTrans,
-                purchLine);
-            virtualLocationId = EOLPurchPackingSlipCorrector::defaultVirtualReceiptLocation(
-                inventDim.InventLocationId);
-
-            if (inventDim.wMSLocationId != virtualLocationId)
-            {
-                continue;
-            }
+            inventDim = EOLPurchPackingSlipCorrector::inventDimOnVirtualReceiptLocation(
+                EOLPurchPackingSlipCorrector::packingSlipInventDim(
+                    packingSlipTrans,
+                    purchLine));
+            virtualLocationId = inventDim.wMSLocationId;
 
             if (_newReceiveQty > packingSlipTrans.Qty)
             {
@@ -161,6 +156,7 @@ public class EOLPurchPackingSlipCorrector
             purchParmLine.clear();
             purchParmLine.initValue();
             purchParmLine.initFromPurchLine(purchLine);
+            // Force Virtual into the dimension combination (site/warehouse/batch kept).
             purchParmLine.InventDimId = inventDim.inventDimId;
             purchParmLine.ParmId = purchParmTable.ParmId;
             purchParmLine.TableRefId = purchParmTable.TableRefId;
@@ -177,7 +173,7 @@ public class EOLPurchPackingSlipCorrector
 
         if (!lineCreated)
         {
-            throw error("@EOLPackingSlip:NoLineOnVirtualLocation");
+            throw error("@EOLPackingSlip:PackingSlipLineNotFound");
         }
 
         ttscommit;
@@ -330,7 +326,35 @@ public class EOLPurchPackingSlipCorrector
     }
 
     /// <summary>
-    /// Counts product receipt lines posted on the warehouse virtual receipt location.
+    /// Builds an inventory dimension that keeps the receipt combination and
+    /// replaces <c>wMSLocationId</c> with
+    /// <c>InventLocation.EOLWMSLocationIdDefaultVirtualReceipt</c>.
+    /// </summary>
+    /// <param name="_sourceInventDim">
+    /// Dimension of the product receipt or purchase line.
+    /// </param>
+    /// <returns>
+    /// Persisted invent dim whose location is the warehouse virtual receipt location.
+    /// </returns>
+    private static InventDim inventDimOnVirtualReceiptLocation(InventDim _sourceInventDim)
+    {
+        InventDim     inventDim;
+        WMSLocationId virtualLocationId;
+
+        virtualLocationId = EOLPurchPackingSlipCorrector::defaultVirtualReceiptLocation(
+            _sourceInventDim.InventLocationId);
+
+        inventDim.data(_sourceInventDim);
+        inventDim.RecId = 0;
+        inventDim.inventDimId = '';
+        inventDim.wMSLocationId = virtualLocationId;
+        inventDim = InventDim::findOrCreate(inventDim);
+
+        return inventDim;
+    }
+
+    /// <summary>
+    /// Counts product receipt lines that match the optional inventory transaction filter.
     /// </summary>
     /// <param name="_packingSlipJour">
     /// Product receipt journal.
@@ -339,16 +363,13 @@ public class EOLPurchPackingSlipCorrector
     /// Optional inventory transaction id.
     /// </param>
     /// <returns>
-    /// Number of matching virtual receipt lines.
+    /// Number of matching receipt lines.
     /// </returns>
-    private static Counter countVirtualLines(
+    private static Counter countMatchingLines(
         VendPackingSlipJour _packingSlipJour,
         InventTransId _inventTransId)
     {
         VendPackingSlipTrans packingSlipTrans;
-        PurchLine            purchLine;
-        InventDim            inventDim;
-        WMSLocationId        virtualLocationId;
         Counter              lineCount;
 
         lineCount = 0;
@@ -363,26 +384,7 @@ public class EOLPurchPackingSlipCorrector
                 continue;
             }
 
-            purchLine.clear();
-
-            select firstonly purchLine
-                where purchLine.InventTransId == packingSlipTrans.InventTransId;
-
-            if (!purchLine.RecId)
-            {
-                continue;
-            }
-
-            inventDim = EOLPurchPackingSlipCorrector::packingSlipInventDim(
-                packingSlipTrans,
-                purchLine);
-            virtualLocationId = EOLPurchPackingSlipCorrector::defaultVirtualReceiptLocation(
-                inventDim.InventLocationId);
-
-            if (inventDim.wMSLocationId == virtualLocationId)
-            {
-                lineCount++;
-            }
+            lineCount++;
         }
 
         return lineCount;

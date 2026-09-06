@@ -1,6 +1,7 @@
 /// <summary>
 /// Drop-in replacement for insertParmTableData.
-/// Correction is always posted on InventLocation.EOLWMSLocationIdDefaultVirtualReceipt.
+/// Writes InventLocation.EOLWMSLocationIdDefaultVirtualReceipt into
+/// PurchParmLine.InventDimId via InventDim::findOrCreate.
 /// </summary>
 private void insertParmTableData()
 {
@@ -72,10 +73,9 @@ private void insertParmTableData()
 
         virtualLocationId = inventLocation.EOLWMSLocationIdDefaultVirtualReceipt;
 
-        if (inventDim.wMSLocationId != virtualLocationId)
-        {
-            continue;
-        }
+        inventDim.inventDimId = '';
+        inventDim.wMSLocationId = virtualLocationId;
+        inventDim = InventDim::findOrCreate(inventDim);
 
         purchParmLine.clear();
         purchParmLine.initValue();
