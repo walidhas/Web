@@ -14,8 +14,11 @@ Classe runnable : `EOLPurchPackingSlipCorrectorJob`.
 packingSlipId   = 'PR-000123';  // bon de réception / packing slip achat déjà posté
 purchId         = 'PO-000456';
 inventTransId   = '';           // obligatoire si plusieurs lignes virtuelles
+wmsLocationId   = '';           // ignoré : l’emplacement virtuel du magasin est utilisé
 newReceiveQty   = 7;            // nouvelle qté qui doit rester reçue
 ```
+
+`correctQty` a **5 arguments** (pas de défauts X++). La date du document se pose sur `PurchParmTable.TransDate` / `PurchFormLetter.transDate()` : **`PurchParmUpdate` n’a pas de champ `DocumentDate`**.
 
 4. Compiler, puis **Open / Run** dans la société de la commande fournisseur.
 

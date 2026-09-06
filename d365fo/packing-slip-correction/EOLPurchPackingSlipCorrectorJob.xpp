@@ -14,9 +14,10 @@ public class EOLPurchPackingSlipCorrectorJob
     /// </param>
     public static void main(Args _args)
     {
-        Num                 packingSlipId;
+        PackingSlipId       packingSlipId;
         PurchId             purchId;
         InventTransId       inventTransId;
+        WMSLocationId       wmsLocationId;
         Qty                 newReceiveQty;
         VendPackingSlipJour packingSlipJour;
 
@@ -24,6 +25,7 @@ public class EOLPurchPackingSlipCorrectorJob
         packingSlipId   = 'PR-000123';
         purchId         = 'PO-000456';
         inventTransId   = '';
+        wmsLocationId   = '';
         newReceiveQty   = 7;
         // ============================================
 
@@ -48,7 +50,8 @@ public class EOLPurchPackingSlipCorrectorJob
             packingSlipId,
             newReceiveQty,
             purchId,
-            inventTransId);
+            inventTransId,
+            wmsLocationId);
     }
 
 }

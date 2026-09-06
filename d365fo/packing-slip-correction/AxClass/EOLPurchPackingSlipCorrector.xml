@@ -33,14 +33,19 @@ public class EOLPurchPackingSlipCorrector
     /// <param name="_inventTransId">
     /// Purchase line inventory transaction id. Required when several virtual lines match.
     /// </param>
+    /// <param name="_wmsLocationId">
+    /// Unused. Kept so callers compiled against the previous signature still build.
+    /// The location always comes from InventLocation.EOLWMSLocationIdDefaultVirtualReceipt.
+    /// </param>
     /// <returns>
     /// The original product receipt journal that was corrected.
     /// </returns>
     public static VendPackingSlipJour correctQty(
-        Num _packingSlipId,
+        PackingSlipId _packingSlipId,
         Qty _newReceiveQty,
-        PurchId _purchId = '',
-        InventTransId _inventTransId = '')
+        PurchId _purchId,
+        InventTransId _inventTransId,
+        WMSLocationId _wmsLocationId)
     {
         VendPackingSlipJour             packingSlipJour;
         VendPackingSlipTrans            packingSlipTrans;
@@ -109,7 +114,6 @@ public class EOLPurchPackingSlipCorrector
         }
 
         purchParmUpdate.SpecQty = PurchUpdate::ReceiveNow;
-        purchParmUpdate.DocumentDate = transDate;
         purchParmUpdate.Proforma = NoYes::No;
         purchParmUpdate.update();
 
@@ -232,7 +236,7 @@ public class EOLPurchPackingSlipCorrector
     /// The product receipt journal.
     /// </returns>
     private static VendPackingSlipJour findJournal(
-        Num _packingSlipId,
+        PackingSlipId _packingSlipId,
         PurchId _purchId)
     {
         VendPackingSlipJour packingSlipJour;
