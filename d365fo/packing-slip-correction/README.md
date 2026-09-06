@@ -2,6 +2,28 @@
 
 Code X++ à coller dans l’AOT pour **corriger un packing slip déjà validé** en imposant une **quantité livrée cible**.
 
+## Job achat — corriger un product receipt existant
+
+Classe runnable : `EOLPurchPackingSlipCorrectorJob`.
+
+1. Créer les classes `EOLPurchPackingSlipCorrector` et `EOLPurchPackingSlipCorrectorJob` dans l’AOT.
+2. Importer les labels `EOLPackingSlip`.
+3. Dans `main`, renseigner :
+
+```x++
+packingSlipId   = 'PR-000123';  // bon de réception / packing slip achat déjà posté
+purchId         = 'PO-000456';
+inventTransId   = '';           // obligatoire si le BL a plusieurs lignes
+wmsLocationId   = '';           // optionnel
+newReceiveQty   = 7;            // nouvelle qté qui doit rester reçue
+```
+
+4. Compiler, puis **Open / Run** dans la société de la commande fournisseur.
+
+`newReceiveQty` = colonne **Update** du formulaire standard **Corriger** (pas la qté à storno). BL à 10 → vous voulez 7 : passer `7`.
+
+Si le job est lancé depuis un enregistrement `VendPackingSlipJour`, les ids du journal sont repris automatiquement.
+
 Comportement aligné sur le standard : **Ventes et marketing > Commandes client > Préparer > Journaux > Bon de livraison > Corriger**.
 
 ## Crash `createData(false)` / ligne 224
