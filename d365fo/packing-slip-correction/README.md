@@ -2,7 +2,22 @@
 
 Code X++ à coller dans l’AOT pour **corriger un packing slip déjà validé** en imposant une **quantité livrée cible**.
 
-## Job achat — corriger un product receipt existant
+## Job achat WHS — ligne négative (recommandé si gestion d’entrepôt)
+
+La correction de journal (`EOLPurchPackingSlipCorrector`) est **bloquée** pour un article reçu en WHS.
+
+Job : `EOLPurchNegLineReceiptCorrectorJob`.
+
+1. Désactive le change management (sans demande de changement).
+2. Ajoute une ligne CF **négative** (qté storno = qté reçue − `newReceiveQty`).
+3. Pose **Virtual** dans `InventDimId`.
+4. Confirme, puis poste un **nouveau** bon de réception (pas une Correction du journal d’origine).
+
+Le stock à storno doit être sur l’emplacement Virtual.
+
+Détail : `design/FDD_PurchWHSQtyCorrection/README.md`.
+
+## Job achat non WHS — correction de journal
 
 Classe runnable : `EOLPurchPackingSlipCorrectorJob`.
 

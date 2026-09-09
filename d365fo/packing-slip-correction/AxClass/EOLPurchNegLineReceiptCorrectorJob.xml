@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>EOLPurchNegLineReceiptCorrectorJob</Name>
+  <SourceCode>
+    <Declaration><![CDATA[
+/// <summary>
+/// Runnable job: WHS over-receipt adjustment via a negative purchase line.
+/// Does not correct the original product receipt journal.
+/// Fill the constants in <c>main</c>, then Open / Run in the PO company.
+/// </summary>
+public class EOLPurchNegLineReceiptCorrectorJob
+{
+}
+]]></Declaration>
+    <Methods>
+      <Method>
+        <Name>main</Name>
+        <Source><![CDATA[
+    /// <summary>
+    /// Entry point.
+    /// </summary>
+    /// <param name="_args">
+    /// Optional. When the caller record is <c>VendPackingSlipJour</c>, its ids are used.
+    /// </param>
+    public static void main(Args _args)
+    {
+        PackingSlipId       packingSlipId;
+        PurchId             purchId;
+        InventTransId       inventTransId;
+        WMSLocationId       wmsLocationId;
+        Qty                 newReceiveQty;
+        VendPackingSlipJour packingSlipJour;
+
+        // ===== Fill these values before running =====
+        packingSlipId   = 'PR-000123';
+        purchId         = 'PO-000456';
+        inventTransId   = '';
+        wmsLocationId   = '';
+        newReceiveQty   = 7;
+        // ============================================
+
+        if (_args && _args.record() && _args.record().TableId == tableNum(VendPackingSlipJour))
+        {
+            packingSlipJour = _args.record();
+            packingSlipId = packingSlipJour.PackingSlipId;
+            purchId = packingSlipJour.PurchId;
+        }
+
+        if (!packingSlipId)
+        {
+            throw error("@EOLPackingSlip:PackingSlipNotFound");
+        }
+
+        info(strFmt("@EOLPackingSlip:PurchJobStarting",
+            packingSlipId,
+            purchId,
+            newReceiveQty));
+
+        EOLPurchNegLineReceiptCorrector::correctQty(
+            packingSlipId,
+            newReceiveQty,
+            purchId,
+            inventTransId,
+            wmsLocationId);
+    }
+]]></Source>
+      </Method>
+    </Methods>
+  </SourceCode>
+</AxClass>

@@ -21,3 +21,6 @@ WarehouseNotFoundId=Warehouse %1 was not found.
 VirtualReceiptLocNotSetup=Warehouse %1 has no default virtual receipt location (InventLocation.EOLWMSLocationIdDefaultVirtualReceipt).
 NoLineOnVirtualLocation=No product receipt line is on the default virtual receipt location of the warehouse.
 PurchCorrectionPostedOnVirtual=Product receipt %1: received quantity set to %2 on virtual location %3.
+PurchLineNotFound=The purchase order line of the product receipt was not found.
+NegLineCreateFailed=Failed to create the negative purchase order line.
+NegLineReceiptPosted=Purchase order %1 line %2: reversed qty %3 on virtual location %4 (new product receipt %5).
