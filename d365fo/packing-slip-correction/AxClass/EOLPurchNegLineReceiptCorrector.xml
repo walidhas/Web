@@ -8,6 +8,7 @@
 /// purchase line, confirming it, and posting a new product receipt.
 /// Does not correct the original VendPackingSlipJour (blocked for WHS).
 /// Skips purchase change management without creating a change request.
+/// Confirms the new line without submitting the purchase order approval workflow.
 /// </summary>
 public class EOLPurchNegLineReceiptCorrector
 {
@@ -109,6 +110,8 @@ public class EOLPurchNegLineReceiptCorrector
                 virtualInventDim,
                 -reverseQty);
 
+            purchTable.reread();
+            EOLPurchNegLineReceiptCorrector::approveWithoutWorkflow(purchTable);
             EOLPurchNegLineReceiptCorrector::confirmPurchaseOrder(purchTable);
 
             newJour = EOLPurchNegLineReceiptCorrector::receiveNegativeLine(
@@ -251,6 +254,30 @@ public class EOLPurchNegLineReceiptCorrector
 ]]></Source>
       </Method>
       <Method>
+        <Name>approveWithoutWorkflow</Name>
+        <Source><![CDATA[
+    /// <summary>
+    /// Sets the purchase order to Approved so confirmation does not require workflow.
+    /// Adding a line often resets DocumentState to Draft; this must run after createLine.
+    /// </summary>
+    /// <param name="_purchTable">
+    /// Purchase order header.
+    /// </param>
+    private static void approveWithoutWorkflow(PurchTable _purchTable)
+    {
+        if (_purchTable.DocumentState == VersioningDocumentState::Approved
+            || _purchTable.DocumentState == VersioningDocumentState::Finalized)
+        {
+            return;
+        }
+
+        _purchTable.selectForUpdate(true);
+        _purchTable.DocumentState = VersioningDocumentState::Approved;
+        _purchTable.doUpdate();
+    }
+]]></Source>
+      </Method>
+      <Method>
         <Name>createNegativeLine</Name>
         <Source><![CDATA[
     /// <summary>
@@ -296,6 +323,7 @@ public class EOLPurchNegLineReceiptCorrector
         <Source><![CDATA[
     /// <summary>
     /// Confirms the purchase order so the new negative line becomes ordered.
+    /// The header must already be Approved (see <c>approveWithoutWorkflow</c>).
     /// </summary>
     private static void confirmPurchaseOrder(PurchTable _purchTable)
     {
@@ -309,6 +337,7 @@ public class EOLPurchNegLineReceiptCorrector
         purchFormLetter.printFormLetter(false);
         purchFormLetter.update(
             _purchTable,
+            '',
             transDate,
             PurchUpdate::All,
             AccountOrder::None,
