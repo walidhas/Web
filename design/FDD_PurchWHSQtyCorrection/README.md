@@ -22,6 +22,7 @@ Ce chemin **ne fonctionne pas** pour un article reçu via **WHS** (gestion d’e
    - désactiver temporairement le change management (`ChangeRequestRequired = No`) **sans** `PurchRequestChange` ;
    - créer une **nouvelle ligne** avec `PurchQty` **négative** (= qté à storno) via `PurchLine.createLine` ;
    - poser l’emplacement **Virtual** (`InventLocation.EOLWMSLocationIdDefaultVirtualReceipt`) dans `InventDimId` ;
+   - passer `DocumentState` à **Approved** (sans soumettre le workflow) ;
    - **confirmer** la ligne (`PurchFormLetter` / `PurchaseOrder`) ;
    - **réceptionner** cette ligne seule (`DocumentStatus::PackingSlip`, `VersioningUpdateType::Initial`, `PurchUpdate::ReceiveNow`) — ce n’est **pas** une Correction de journal ;
    - rétablir le change management.
