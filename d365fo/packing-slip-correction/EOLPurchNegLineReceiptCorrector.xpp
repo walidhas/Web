@@ -1,0 +1,434 @@
+/// <summary>
+/// Adjusts an over-received purchase quantity for WHS by adding a negative
+/// purchase line, confirming it, and posting a new product receipt.
+/// Does not correct the original VendPackingSlipJour (blocked for WHS).
+/// Skips purchase change management without creating a change request.
+/// </summary>
+public class EOLPurchNegLineReceiptCorrector
+{
+    /// <summary>
+    /// Adds a negative PO line for the qty to reverse, confirms it, and receives
+    /// it on the warehouse virtual receipt location.
+    /// </summary>
+    /// <param name="_packingSlipId">
+    /// Original posted product receipt id (used to find the received qty and line).
+    /// </param>
+    /// <param name="_newReceiveQty">
+    /// Quantity that must remain received on the original receipt.
+    /// Reverse qty = original received qty minus this value.
+    /// </param>
+    /// <param name="_purchId">
+    /// Purchase order id.
+    /// </param>
+    /// <param name="_inventTransId">
+    /// Original purchase line invent trans id. Required when the receipt has several lines.
+    /// </param>
+    /// <param name="_wmsLocationId">
+    /// Unused. Virtual location always comes from
+    /// <c>InventLocation.EOLWMSLocationIdDefaultVirtualReceipt</c>.
+    /// </param>
+    /// <returns>
+    /// The new product receipt journal posted for the negative line.
+    /// </returns>
+    public static VendPackingSlipJour correctQty(
+        PackingSlipId _packingSlipId,
+        Qty _newReceiveQty,
+        PurchId _purchId,
+        InventTransId _inventTransId,
+        WMSLocationId _wmsLocationId)
+    {
+        VendPackingSlipJour packingSlipJour;
+        VendPackingSlipTrans packingSlipTrans;
+        PurchTable          purchTable;
+        PurchLine           origPurchLine;
+        PurchLine           negPurchLine;
+        InventDim           virtualInventDim;
+        Qty                 reverseQty;
+        boolean             changeMgmtWasOn;
+        VendPackingSlipJour newJour;
+
+        if (_newReceiveQty < 0)
+        {
+            throw error("@EOLPackingSlip:QtyCannotBeNegative");
+        }
+
+        packingSlipJour = EOLPurchNegLineReceiptCorrector::findJournal(_packingSlipId, _purchId);
+        packingSlipTrans = EOLPurchNegLineReceiptCorrector::findTrans(packingSlipJour, _inventTransId);
+
+        if (_newReceiveQty > packingSlipTrans.Qty)
+        {
+            throw error(strFmt("@EOLPackingSlip:QtyMustBeLower", packingSlipTrans.Qty));
+        }
+
+        if (_newReceiveQty == packingSlipTrans.Qty)
+        {
+            throw error("@EOLPackingSlip:QtyUnchanged");
+        }
+
+        reverseQty = packingSlipTrans.Qty - _newReceiveQty;
+
+        origPurchLine.clear();
+        select firstonly origPurchLine
+            where origPurchLine.InventTransId == packingSlipTrans.InventTransId;
+
+        if (!origPurchLine.RecId)
+        {
+            throw error("@EOLPackingSlip:PurchLineNotFound");
+        }
+
+        purchTable = PurchTable::find(packingSlipJour.PurchId, true);
+
+        if (!purchTable.RecId)
+        {
+            throw error(strFmt("@EOLPackingSlip:PurchOrderNotFound", packingSlipJour.PurchId));
+        }
+
+        virtualInventDim = EOLPurchNegLineReceiptCorrector::inventDimOnVirtualReceiptLocation(
+            EOLPurchNegLineReceiptCorrector::packingSlipInventDim(packingSlipTrans, origPurchLine));
+
+        changeMgmtWasOn = purchTable.ChangeRequestRequired;
+
+        try
+        {
+            EOLPurchNegLineReceiptCorrector::setChangeManagement(purchTable, NoYes::No);
+
+            negPurchLine = EOLPurchNegLineReceiptCorrector::createNegativeLine(
+                purchTable,
+                origPurchLine,
+                virtualInventDim,
+                -reverseQty);
+
+            EOLPurchNegLineReceiptCorrector::confirmPurchaseOrder(purchTable);
+
+            newJour = EOLPurchNegLineReceiptCorrector::receiveNegativeLine(
+                purchTable,
+                negPurchLine,
+                virtualInventDim);
+        }
+        finally
+        {
+            if (changeMgmtWasOn)
+            {
+                purchTable = PurchTable::find(purchTable.PurchId, true);
+                EOLPurchNegLineReceiptCorrector::setChangeManagement(purchTable, NoYes::Yes);
+            }
+        }
+
+        info(strFmt("@EOLPackingSlip:NegLineReceiptPosted",
+            purchTable.PurchId,
+            negPurchLine.LineNumber,
+            reverseQty,
+            virtualInventDim.wMSLocationId,
+            newJour.PackingSlipId));
+
+        return newJour;
+    }
+
+    /// <summary>
+    /// Finds the original product receipt journal.
+    /// </summary>
+    private static VendPackingSlipJour findJournal(
+        PackingSlipId _packingSlipId,
+        PurchId _purchId)
+    {
+        VendPackingSlipJour packingSlipJour;
+        VendPackingSlipJour packingSlipJourCount;
+
+        if (!_packingSlipId)
+        {
+            throw error("@EOLPackingSlip:PackingSlipNotFound");
+        }
+
+        if (_purchId)
+        {
+            select firstonly packingSlipJour
+                where packingSlipJour.PackingSlipId == _packingSlipId
+                   && packingSlipJour.PurchId == _purchId;
+        }
+        else
+        {
+            select count(RecId) from packingSlipJourCount
+                where packingSlipJourCount.PackingSlipId == _packingSlipId;
+
+            if (packingSlipJourCount.RecId > 1)
+            {
+                throw error(strFmt("@EOLPackingSlip:AmbiguousPackingSlip", _packingSlipId));
+            }
+
+            select firstonly packingSlipJour
+                where packingSlipJour.PackingSlipId == _packingSlipId;
+        }
+
+        if (!packingSlipJour.RecId)
+        {
+            throw error(strFmt("@EOLPackingSlip:PackingSlipNotFoundId", _packingSlipId));
+        }
+
+        return packingSlipJour;
+    }
+
+    /// <summary>
+    /// Finds the product receipt transaction to reverse.
+    /// </summary>
+    private static VendPackingSlipTrans findTrans(
+        VendPackingSlipJour _packingSlipJour,
+        InventTransId _inventTransId)
+    {
+        VendPackingSlipTrans packingSlipTrans;
+        VendPackingSlipTrans packingSlipTransCount;
+
+        if (_inventTransId)
+        {
+            select firstonly packingSlipTrans
+                where packingSlipTrans.OrigPurchid == _packingSlipJour.PurchId
+                   && packingSlipTrans.PackingSlipId == _packingSlipJour.PackingSlipId
+                   && packingSlipTrans.DeliveryDate == _packingSlipJour.DeliveryDate
+                   && packingSlipTrans.InventTransId == _inventTransId;
+        }
+        else
+        {
+            select count(RecId) from packingSlipTransCount
+                where packingSlipTransCount.OrigPurchid == _packingSlipJour.PurchId
+                   && packingSlipTransCount.PackingSlipId == _packingSlipJour.PackingSlipId
+                   && packingSlipTransCount.DeliveryDate == _packingSlipJour.DeliveryDate;
+
+            if (packingSlipTransCount.RecId > 1)
+            {
+                throw error("@EOLPackingSlip:SpecifyLine");
+            }
+
+            select firstonly packingSlipTrans
+                where packingSlipTrans.OrigPurchid == _packingSlipJour.PurchId
+                   && packingSlipTrans.PackingSlipId == _packingSlipJour.PackingSlipId
+                   && packingSlipTrans.DeliveryDate == _packingSlipJour.DeliveryDate;
+        }
+
+        if (!packingSlipTrans.RecId)
+        {
+            throw error("@EOLPackingSlip:PackingSlipLineNotFound");
+        }
+
+        return packingSlipTrans;
+    }
+
+    /// <summary>
+    /// Toggles change management on the purchase order header without a change request.
+    /// </summary>
+    private static void setChangeManagement(PurchTable _purchTable, NoYes _required)
+    {
+        if (_purchTable.ChangeRequestRequired == _required)
+        {
+            return;
+        }
+
+        _purchTable.selectForUpdate(true);
+        _purchTable.ChangeRequestRequired = _required;
+        _purchTable.doUpdate();
+    }
+
+    /// <summary>
+    /// Creates a new purchase line with a negative quantity on the Virtual invent dim.
+    /// </summary>
+    private static PurchLine createNegativeLine(
+        PurchTable _purchTable,
+        PurchLine _origPurchLine,
+        InventDim _virtualInventDim,
+        Qty _purchQty)
+    {
+        PurchLine purchLine;
+
+        purchLine.clear();
+        purchLine.initValue();
+        purchLine.PurchId = _purchTable.PurchId;
+        purchLine.ItemId = _origPurchLine.ItemId;
+        purchLine.PurchQty = _purchQty;
+        purchLine.PurchUnit = _origPurchLine.PurchUnit;
+        purchLine.PurchPrice = _origPurchLine.PurchPrice;
+        purchLine.CurrencyCode = _origPurchLine.CurrencyCode;
+        purchLine.InventDimId = _virtualInventDim.inventDimId;
+        purchLine.createLine(true, true, true, true, true, true);
+
+        if (purchLine.InventDimId != _virtualInventDim.inventDimId)
+        {
+            purchLine.selectForUpdate(true);
+            purchLine.InventDimId = _virtualInventDim.inventDimId;
+            purchLine.doUpdate();
+        }
+
+        if (!purchLine.RecId)
+        {
+            throw error("@EOLPackingSlip:NegLineCreateFailed");
+        }
+
+        return purchLine;
+    }
+
+    /// <summary>
+    /// Confirms the purchase order so the new negative line becomes ordered.
+    /// </summary>
+    private static void confirmPurchaseOrder(PurchTable _purchTable)
+    {
+        PurchFormLetter purchFormLetter;
+        TransDate       transDate;
+
+        transDate = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
+        _purchTable.reread();
+
+        purchFormLetter = PurchFormLetter::construct(DocumentStatus::PurchaseOrder);
+        purchFormLetter.printFormLetter(false);
+        purchFormLetter.update(
+            _purchTable,
+            transDate,
+            PurchUpdate::All,
+            AccountOrder::None,
+            NoYes::No,
+            NoYes::No);
+    }
+
+    /// <summary>
+    /// Posts a new product receipt for the negative line only (not a journal correction).
+    /// </summary>
+    private static VendPackingSlipJour receiveNegativeLine(
+        PurchTable _purchTable,
+        PurchLine _negPurchLine,
+        InventDim _virtualInventDim)
+    {
+        PurchFormletterParmData formletterParmData;
+        PurchParmUpdate         purchParmUpdate;
+        PurchParmTable          purchParmTable;
+        PurchParmLine           purchParmLine;
+        PurchFormLetter         purchFormLetter;
+        TransDate               transDate;
+        VendPackingSlipJour     newJour;
+
+        _negPurchLine.reread();
+        transDate = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
+        newJour.clear();
+
+        ttsbegin;
+
+        formletterParmData = PurchFormletterParmData::newData(
+            DocumentStatus::PackingSlip,
+            VersioningUpdateType::Initial);
+
+        formletterParmData.init();
+        formletterParmData.parmOnlyCreateParmUpdate(true);
+        formletterParmData.createData(false);
+
+        purchParmUpdate = formletterParmData.parmParmUpdate();
+
+        if (!purchParmUpdate.RecId)
+        {
+            throw error("@EOLPackingSlip:ParmBuildFailed");
+        }
+
+        purchParmUpdate.SpecQty = PurchUpdate::ReceiveNow;
+        purchParmUpdate.Proforma = NoYes::No;
+        purchParmUpdate.update();
+
+        purchParmTable.clear();
+        purchParmTable.initValue();
+        purchParmTable.TransDate = transDate;
+        purchParmTable.Ordering = DocumentStatus::PackingSlip;
+        purchParmTable.ParmJobStatus = ParmJobStatus::Waiting;
+        purchParmTable.initFromPurchTable(_purchTable);
+        purchParmTable.ParmId = purchParmUpdate.ParmId;
+        purchParmTable.insert();
+
+        purchParmLine.clear();
+        purchParmLine.initValue();
+        purchParmLine.initFromPurchLine(_negPurchLine);
+        purchParmLine.InventDimId = _virtualInventDim.inventDimId;
+        purchParmLine.ParmId = purchParmTable.ParmId;
+        purchParmLine.TableRefId = purchParmTable.TableRefId;
+        purchParmLine.ReceiveNow = _negPurchLine.PurchQty;
+        purchParmLine.modifiedReceiveNow();
+        purchParmLine.setQty(DocumentStatus::PackingSlip, false, true);
+        purchParmLine.setLineAmount();
+        purchParmLine.insert();
+
+        ttscommit;
+
+        purchFormLetter = PurchFormLetter::construct(DocumentStatus::PackingSlip);
+        purchFormLetter.purchParmUpdate(formletterParmData.parmParmUpdate());
+        purchFormLetter.parmId(purchParmTable.ParmId);
+        purchFormLetter.specQty(PurchUpdate::ReceiveNow);
+        purchFormLetter.transDate(transDate);
+        purchFormLetter.proforma(false);
+        purchFormLetter.run();
+
+        if (purchFormLetter.parmJournalRecord().TableId == tableNum(VendPackingSlipJour))
+        {
+            newJour = purchFormLetter.parmJournalRecord();
+        }
+
+        if (!newJour.RecId)
+        {
+            throw error("@EOLPackingSlip:PostingFailed");
+        }
+
+        return newJour;
+    }
+
+    /// <summary>
+    /// Resolves the inventory dimension of a product receipt transaction.
+    /// </summary>
+    private static InventDim packingSlipInventDim(
+        VendPackingSlipTrans _packingSlipTrans,
+        PurchLine _purchLine)
+    {
+        InventDim inventDim;
+
+        if (_packingSlipTrans.InventDimId)
+        {
+            inventDim = InventDim::find(_packingSlipTrans.InventDimId);
+        }
+
+        if (!inventDim.RecId)
+        {
+            inventDim = _purchLine.inventDim();
+        }
+
+        if (!inventDim.RecId)
+        {
+            throw error("@EOLPackingSlip:PackingSlipLineNotFound");
+        }
+
+        return inventDim;
+    }
+
+    /// <summary>
+    /// Builds an invent dim with wMSLocationId = warehouse virtual receipt location.
+    /// </summary>
+    private static InventDim inventDimOnVirtualReceiptLocation(InventDim _sourceInventDim)
+    {
+        InventDim     inventDim;
+        InventLocation inventLocation;
+
+        if (!_sourceInventDim.InventLocationId)
+        {
+            throw error("@EOLPackingSlip:WarehouseNotFound");
+        }
+
+        inventLocation = InventLocation::find(_sourceInventDim.InventLocationId);
+
+        if (!inventLocation.RecId)
+        {
+            throw error(strFmt("@EOLPackingSlip:WarehouseNotFoundId", _sourceInventDim.InventLocationId));
+        }
+
+        if (!inventLocation.EOLWMSLocationIdDefaultVirtualReceipt)
+        {
+            throw error(strFmt("@EOLPackingSlip:VirtualReceiptLocNotSetup", _sourceInventDim.InventLocationId));
+        }
+
+        inventDim.data(_sourceInventDim);
+        inventDim.RecId = 0;
+        inventDim.inventDimId = '';
+        inventDim.wMSLocationId = inventLocation.EOLWMSLocationIdDefaultVirtualReceipt;
+        inventDim = InventDim::findOrCreate(inventDim);
+
+        return inventDim;
+    }
+
+}

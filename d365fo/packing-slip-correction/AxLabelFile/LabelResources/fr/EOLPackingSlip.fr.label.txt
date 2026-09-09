@@ -21,3 +21,6 @@ WarehouseNotFoundId=Le magasin %1 est introuvable.
 VirtualReceiptLocNotSetup=Le magasin %1 n'a pas d'emplacement virtuel de réception (InventLocation.EOLWMSLocationIdDefaultVirtualReceipt).
 NoLineOnVirtualLocation=Aucune ligne du bon de réception n'est sur l'emplacement virtuel de réception du magasin.
 PurchCorrectionPostedOnVirtual=Bon de réception %1 : quantité reçue positionnée à %2 sur l'emplacement virtuel %3.
+PurchLineNotFound=La ligne de commande fournisseur du bon de réception est introuvable.
+NegLineCreateFailed=Échec de la création de la ligne de commande négative.
+NegLineReceiptPosted=Commande %1 ligne %2 : quantité stornée %3 sur l'emplacement virtuel %4 (nouveau bon de réception %5).
