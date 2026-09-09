@@ -117,7 +117,8 @@ public class EOLPurchNegLineReceiptCorrector
             newJour = EOLPurchNegLineReceiptCorrector::receiveNegativeLine(
                 purchTable,
                 negPurchLine,
-                virtualInventDim);
+                virtualInventDim,
+                packingSlipJour.PackingSlipId);
         }
         finally
         {
@@ -351,11 +352,28 @@ public class EOLPurchNegLineReceiptCorrector
         <Source><![CDATA[
     /// <summary>
     /// Posts a new product receipt for the negative line only (not a journal correction).
+    /// The journal number is the original <c>PackingSlipId</c>.
     /// </summary>
+    /// <param name="_purchTable">
+    /// Purchase order header.
+    /// </param>
+    /// <param name="_negPurchLine">
+    /// Negative purchase line to receive.
+    /// </param>
+    /// <param name="_virtualInventDim">
+    /// Invent dim with the virtual receipt location.
+    /// </param>
+    /// <param name="_packingSlipId">
+    /// Original product receipt id to reuse on the new journal.
+    /// </param>
+    /// <returns>
+    /// The posted product receipt journal.
+    /// </returns>
     private static VendPackingSlipJour receiveNegativeLine(
         PurchTable _purchTable,
         PurchLine _negPurchLine,
-        InventDim _virtualInventDim)
+        InventDim _virtualInventDim,
+        PackingSlipId _packingSlipId)
     {
         PurchFormletterParmData formletterParmData;
         PurchParmUpdate         purchParmUpdate;
@@ -368,6 +386,11 @@ public class EOLPurchNegLineReceiptCorrector
         _negPurchLine.reread();
         transDate = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
         newJour.clear();
+
+        if (!_packingSlipId)
+        {
+            throw error("@EOLPackingSlip:PackingSlipNotFound");
+        }
 
         ttsbegin;
 
@@ -397,6 +420,7 @@ public class EOLPurchNegLineReceiptCorrector
         purchParmTable.ParmJobStatus = ParmJobStatus::Waiting;
         purchParmTable.initFromPurchTable(_purchTable);
         purchParmTable.ParmId = purchParmUpdate.ParmId;
+        purchParmTable.Num = _packingSlipId;
         purchParmTable.insert();
 
         purchParmLine.clear();

@@ -13,7 +13,7 @@ Do not correct `VendPackingSlipJour` for WHS-enabled receipts. Microsoft blocks 
   3. `InventDim::findOrCreate` with `wMSLocationId` = `InventLocation.EOLWMSLocationIdDefaultVirtualReceipt`.
   4. Set `DocumentState` to `Approved` without submitting workflow (a new line often resets the header to Draft).
   5. Confirm with `PurchFormLetter` / `DocumentStatus::PurchaseOrder`.
-  6. Post product receipt for that line only (`VersioningUpdateType::Initial`, `PurchUpdate::ReceiveNow`).
+  6. Post product receipt for that line only (`VersioningUpdateType::Initial`, `PurchUpdate::ReceiveNow`) with `PurchParmTable.Num` = original `PackingSlipId`.
   7. Restore `ChangeRequestRequired`.
 
 The original product receipt journal is left unchanged. Net received quantity is original line + negative line.

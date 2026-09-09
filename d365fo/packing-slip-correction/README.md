@@ -11,7 +11,7 @@ Job : `EOLPurchNegLineReceiptCorrectorJob`.
 1. Désactive le change management (sans demande de changement).
 2. Ajoute une ligne CF **négative** (qté storno = qté reçue − `newReceiveQty`).
 3. Pose **Virtual** dans `InventDimId`.
-4. Passe la CF en **Approved** sans workflow, confirme, puis poste un **nouveau** bon de réception (pas une Correction du journal d’origine).
+4. Passe la CF en **Approved** sans workflow, confirme, puis poste un **nouveau** bon de réception avec le **même** `PackingSlipId` que le journal d’origine (`PurchParmTable.Num`).
 
 Le stock à storno doit être sur l’emplacement Virtual.
 

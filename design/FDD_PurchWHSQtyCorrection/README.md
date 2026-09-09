@@ -24,7 +24,7 @@ Ce chemin **ne fonctionne pas** pour un article reçu via **WHS** (gestion d’e
    - poser l’emplacement **Virtual** (`InventLocation.EOLWMSLocationIdDefaultVirtualReceipt`) dans `InventDimId` ;
    - passer `DocumentState` à **Approved** (sans soumettre le workflow) ;
    - **confirmer** la ligne (`PurchFormLetter` / `PurchaseOrder`) ;
-   - **réceptionner** cette ligne seule (`DocumentStatus::PackingSlip`, `VersioningUpdateType::Initial`, `PurchUpdate::ReceiveNow`) — ce n’est **pas** une Correction de journal ;
+   - **réceptionner** cette ligne seule (`DocumentStatus::PackingSlip`, `VersioningUpdateType::Initial`, `PurchUpdate::ReceiveNow`) avec le **même** `PackingSlipId` (`PurchParmTable.Num`) — ce n’est **pas** une Correction de journal ;
    - rétablir le change management.
 
 Le stock à storno doit déjà être (ou être mis) sur l’emplacement Virtual. Sinon la sortie physique échoue.
