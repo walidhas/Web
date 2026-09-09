@@ -278,6 +278,7 @@ public class EOLPurchNegLineReceiptCorrector
         purchFormLetter.printFormLetter(false);
         purchFormLetter.update(
             _purchTable,
+            '',
             transDate,
             PurchUpdate::All,
             AccountOrder::None,
