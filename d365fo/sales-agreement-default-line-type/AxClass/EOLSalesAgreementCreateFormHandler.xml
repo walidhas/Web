@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>EOLSalesAgreementCreateFormHandler</Name>
+  <SourceCode>
+    <Declaration><![CDATA[
+/// <summary>
+/// Form event handlers for <c>SalesAgreementCreate</c>.
+/// When the agreement classification changes, defaults the commitment type
+/// from <c>AgreementClassification.EOLDefaultCommitmentType</c>.
+/// </summary>
+public class EOLSalesAgreementCreateFormHandler
+{
+}
+]]></Declaration>
+    <Methods>
+      <Method>
+        <Name>AgreementClassification_OnModified</Name>
+        <Source><![CDATA[
+    /// <summary>
+    /// On <c>AgreementHeader.AgreementClassification</c> modified, copies
+    /// <c>AgreementClassification.EOLDefaultCommitmentType</c> into
+    /// <c>AgreementHeader.DefaultAgreementLineType</c>.
+    /// </summary>
+    /// <param name="_sender">
+    /// The modified form data field.
+    /// </param>
+    /// <param name="_e">
+    /// Form data field event arguments.
+    /// </param>
+    [FormDataFieldEventHandler(formDataFieldStr(SalesAgreementCreate, AgreementHeader, AgreementClassification), FormDataFieldEventType::Modified)]
+    public static void AgreementClassification_OnModified(FormDataObject _sender, FormDataFieldEventArgs _e)
+    {
+        FormDataSource agreementHeaderDs = _sender.dataSource();
+        AgreementHeader agreementHeader = agreementHeaderDs.cursor();
+        AgreementClassification agreementClassification;
+
+        agreementClassification = AgreementClassification::find(agreementHeader.AgreementClassification);
+
+        agreementHeader.DefaultAgreementLineType = agreementClassification.EOLDefaultCommitmentType;
+    }
+
+]]></Source>
+      </Method>
+    </Methods>
+  </SourceCode>
+</AxClass>
