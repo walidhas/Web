@@ -1,6 +1,6 @@
 # SalesAgreementCreate — default commitment from classification
 
-When **Agreement classification** changes on the create sales agreement dialog (`SalesAgreementCreate`), set **Default commitment** (`SalesAgreementHeader.DefaultAgreementLineType`) from `AgreementClassification.EOLDefaultCommitmentType`.
+When **Agreement classification** changes on `SalesAgreementCreate`, set **Default commitment** (`SalesAgreementHeader.DefaultAgreementLineType`) from `AgreementClassification.EOLDefaultCommitmentType`.
 
 ## Prerequisite
 
@@ -16,6 +16,6 @@ Field `EOLDefaultCommitmentType` must already exist on table `AgreementClassific
 
 | Event | Action |
 |-------|--------|
-| `SalesAgreementHeader.AgreementClassification` modified on `SalesAgreementCreate` | `SalesAgreementHeader.DefaultAgreementLineType = AgreementClassification::find(...).EOLDefaultCommitmentType` |
+| Control `SalesAgreementHeader_AgreementClassification` modified | `SalesAgreementHeader.DefaultAgreementLineType = AgreementClassification::find(...).EOLDefaultCommitmentType` |
 
-Form datasource name is `SalesAgreementHeader` (not `AgreementHeader`).
+Uses `FormControlEventHandler` on `formControlStr(SalesAgreementCreate, SalesAgreementHeader_AgreementClassification)`.

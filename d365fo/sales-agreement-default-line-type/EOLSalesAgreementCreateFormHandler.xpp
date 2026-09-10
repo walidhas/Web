@@ -6,20 +6,21 @@
 public class EOLSalesAgreementCreateFormHandler
 {
     /// <summary>
-    /// On <c>SalesAgreementHeader.AgreementClassification</c> modified, copies
+    /// On control <c>SalesAgreementHeader_AgreementClassification</c> modified, copies
     /// <c>AgreementClassification.EOLDefaultCommitmentType</c> into
     /// <c>SalesAgreementHeader.DefaultAgreementLineType</c>.
     /// </summary>
-    /// <param name="_sender">
-    /// The modified form data field.
+    /// <param name="sender">
+    /// The modified form control.
     /// </param>
-    /// <param name="_e">
-    /// Form data field event arguments.
+    /// <param name="e">
+    /// Form control event arguments.
     /// </param>
-    [FormDataFieldEventHandler(formDataFieldStr(SalesAgreementCreate, SalesAgreementHeader, AgreementClassification), FormDataFieldEventType::Modified)]
-    public static void AgreementClassification_OnModified(FormDataObject _sender, FormDataFieldEventArgs _e)
+    [FormControlEventHandler(formControlStr(SalesAgreementCreate, SalesAgreementHeader_AgreementClassification), FormControlEventType::Modified)]
+    public static void SalesAgreementHeader_AgreementClassification_OnModified(FormControl sender, FormControlEventArgs e)
     {
-        FormDataSource salesAgreementHeaderDs = _sender.dataSource();
+        FormRun formRun = sender.formRun();
+        FormDataSource salesAgreementHeaderDs = formRun.dataSource(formDataSourceStr(SalesAgreementCreate, SalesAgreementHeader));
         SalesAgreementHeader salesAgreementHeader = salesAgreementHeaderDs.cursor();
         AgreementClassification agreementClassification;
 
