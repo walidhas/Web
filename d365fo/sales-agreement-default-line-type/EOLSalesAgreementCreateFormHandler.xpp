@@ -6,9 +6,9 @@
 public class EOLSalesAgreementCreateFormHandler
 {
     /// <summary>
-    /// On <c>AgreementHeader.AgreementClassification</c> modified, copies
+    /// On <c>SalesAgreementHeader.AgreementClassification</c> modified, copies
     /// <c>AgreementClassification.EOLDefaultCommitmentType</c> into
-    /// <c>AgreementHeader.DefaultAgreementLineType</c>.
+    /// <c>SalesAgreementHeader.DefaultAgreementLineType</c>.
     /// </summary>
     /// <param name="_sender">
     /// The modified form data field.
@@ -16,16 +16,16 @@ public class EOLSalesAgreementCreateFormHandler
     /// <param name="_e">
     /// Form data field event arguments.
     /// </param>
-    [FormDataFieldEventHandler(formDataFieldStr(SalesAgreementCreate, AgreementHeader, AgreementClassification), FormDataFieldEventType::Modified)]
+    [FormDataFieldEventHandler(formDataFieldStr(SalesAgreementCreate, SalesAgreementHeader, AgreementClassification), FormDataFieldEventType::Modified)]
     public static void AgreementClassification_OnModified(FormDataObject _sender, FormDataFieldEventArgs _e)
     {
-        FormDataSource agreementHeaderDs = _sender.dataSource();
-        AgreementHeader agreementHeader = agreementHeaderDs.cursor();
+        FormDataSource salesAgreementHeaderDs = _sender.dataSource();
+        SalesAgreementHeader salesAgreementHeader = salesAgreementHeaderDs.cursor();
         AgreementClassification agreementClassification;
 
-        agreementClassification = AgreementClassification::find(agreementHeader.AgreementClassification);
+        agreementClassification = AgreementClassification::find(salesAgreementHeader.AgreementClassification);
 
-        agreementHeader.DefaultAgreementLineType = agreementClassification.EOLDefaultCommitmentType;
+        salesAgreementHeader.DefaultAgreementLineType = agreementClassification.EOLDefaultCommitmentType;
     }
 
 }
