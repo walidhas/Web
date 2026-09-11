@@ -1,0 +1,72 @@
+/// <summary>
+/// Form event handlers for <c>EOLVendPackRequestForCorrection</c>.
+/// Sets focus on the price or quantity field based on <c>EOLCauseType</c>.
+/// </summary>
+public class EOLVendPackRequestForCorrectionFormHandler
+{
+    /// <summary>
+    /// After the form is activated, focuses <c>NewPurchPrice</c> or <c>NewPurchQty</c>
+    /// according to <c>EOLVendPackRequestForCorrection.EOLCauseType</c>.
+    /// </summary>
+    /// <param name="sender">
+    /// The form run instance.
+    /// </param>
+    /// <param name="e">
+    /// Form event arguments.
+    /// </param>
+    [FormEventHandler(formStr(EOLVendPackRequestForCorrection), FormEventType::Activated)]
+    public static void EOLVendPackRequestForCorrection_OnActivated(xFormRun sender, FormEventArgs e)
+    {
+        FormDataSource ds = sender.dataSource(formDataSourceStr(EOLVendPackRequestForCorrection, EOLVendPackRequestForCorrection));
+        EOLVendPackRequestForCorrection record = ds.cursor();
+
+        EOLVendPackRequestForCorrectionFormHandler::setFocusByCauseType(sender, record);
+    }
+
+    /// <summary>
+    /// When <c>EOLCauseType</c> is modified, moves focus to the matching input field.
+    /// </summary>
+    /// <param name="sender">
+    /// The modified form data field.
+    /// </param>
+    /// <param name="e">
+    /// Form data field event arguments.
+    /// </param>
+    [FormDataFieldEventHandler(formDataFieldStr(EOLVendPackRequestForCorrection, EOLVendPackRequestForCorrection, EOLCauseType), FormDataFieldEventType::Modified)]
+    public static void EOLCauseType_OnModified(FormDataObject sender, FormDataFieldEventArgs e)
+    {
+        FormDataSource ds = sender.datasource();
+        FormRun formRun = ds.formRun();
+        EOLVendPackRequestForCorrection record = ds.cursor();
+
+        EOLVendPackRequestForCorrectionFormHandler::setFocusByCauseType(formRun, record);
+    }
+
+    /// <summary>
+    /// Sets focus on <c>NewPurchPrice</c> for price corrections and
+    /// <c>NewPurchQty</c> for quantity corrections.
+    /// </summary>
+    /// <param name="_formRun">
+    /// The form run that owns the controls.
+    /// </param>
+    /// <param name="_record">
+    /// Current <c>EOLVendPackRequestForCorrection</c> buffer.
+    /// </param>
+    private static void setFocusByCauseType(FormRun _formRun, EOLVendPackRequestForCorrection _record)
+    {
+        FormControl newPurchPrice = _formRun.design().controlName(formControlStr(EOLVendPackRequestForCorrection, NewPurchPrice));
+        FormControl newPurchQty = _formRun.design().controlName(formControlStr(EOLVendPackRequestForCorrection, NewPurchQty));
+
+        switch (_record.EOLCauseType)
+        {
+            case EOLCauseTypeEnum::EOLCauseTypeEnumPrice:
+                newPurchPrice.setFocus();
+                break;
+
+            case EOLCauseTypeEnum::EOLCauseTypeEnumQuantity:
+                newPurchQty.setFocus();
+                break;
+        }
+    }
+
+}
