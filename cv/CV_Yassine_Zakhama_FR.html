@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yassine Zakhama — CV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a2332;
+      --muted: #4a5568;
+      --line: #d8dee8;
+      --accent: #0f6b6b;
+      --accent-soft: #e6f3f3;
+      --bg: #f7f8fa;
+      --paper: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Source Sans 3", "Segoe UI", sans-serif;
+      font-size: 9.9pt;
+      line-height: 1.32;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 16px auto;
+      background: var(--paper);
+      box-shadow: 0 8px 28px rgba(26, 35, 50, 0.08);
+      padding: 12mm 14mm 10mm;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 7px;
+      background: linear-gradient(90deg, var(--accent) 0%, #1a4a5c 55%, #2c3e50 100%);
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px 18px;
+      align-items: end;
+      padding-bottom: 8px;
+      border-bottom: 1.5px solid var(--line);
+      margin-bottom: 9px;
+    }
+
+    .identity h1 {
+      font-family: Fraunces, Georgia, serif;
+      font-size: 24pt;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      color: var(--ink);
+    }
+
+    .identity .role {
+      margin-top: 4px;
+      font-size: 11pt;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .contact {
+      text-align: right;
+      font-size: 9pt;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .contact a {
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .contact a:hover { color: var(--accent); }
+
+    .profile {
+      margin-bottom: 10px;
+      color: var(--ink);
+      font-size: 9.8pt;
+    }
+
+    section { margin-bottom: 10px; }
+
+    .section-title {
+      font-family: Fraunces, Georgia, serif;
+      font-size: 11pt;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
+      padding-bottom: 2px;
+      border-bottom: 1.5px solid var(--accent);
+      display: inline-block;
+      min-width: 120px;
+    }
+
+    .job { margin-bottom: 8px; }
+
+    .job-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 2px;
+    }
+
+    .job-title {
+      font-weight: 700;
+      font-size: 10.5pt;
+      color: var(--ink);
+    }
+
+    .job-dates {
+      font-size: 9pt;
+      font-weight: 600;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .job-meta {
+      font-size: 9.3pt;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    ul {
+      padding-left: 14px;
+      margin: 0;
+    }
+
+    li {
+      margin-bottom: 2.5px;
+      padding-left: 2px;
+    }
+
+    li::marker { color: var(--accent); }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: 118px 1fr;
+      gap: 4px 10px;
+      font-size: 9.6pt;
+    }
+
+    .skills-grid .label {
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .skills-grid .value { color: var(--ink); }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 16px;
+    }
+
+    .edu-item, .meta-item { margin-bottom: 6px; }
+
+    .edu-item strong, .meta-item strong {
+      display: block;
+      font-size: 10pt;
+      color: var(--ink);
+    }
+
+    .edu-item span, .meta-item span {
+      font-size: 9.2pt;
+      color: var(--muted);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 4px;
+    }
+
+    .chip {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 8.4pt;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 3px;
+    }
+
+    footer.note {
+      margin-top: 6px;
+      font-size: 8.2pt;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      padding-top: 6px;
+    }
+
+    @media print {
+      html, body { background: white; }
+      .page {
+        margin: 0;
+        box-shadow: none;
+        width: 210mm;
+        min-height: 297mm;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div class="identity">
+        <h1>Yassine Zakhama</h1>
+        <p class="role">Ingénieur Logiciel Backend — C# / .NET · Architecture applicative</p>
+      </div>
+      <div class="contact">
+        Tunis, Tunisie · +216 29 618 640<br />
+        <a href="mailto:zakhamayassine@gmail.com">zakhamayassine@gmail.com</a><br />
+        <a href="https://yassine-zakhama.vercel.app">yassine-zakhama.vercel.app</a><br />
+        <a href="https://linkedin.com/in/yassine-zakhama">LinkedIn</a> ·
+        <a href="https://github.com/Yassiinee">GitHub</a>
+      </div>
+    </header>
+
+    <p class="profile">
+      Ingénieur logiciel avec 4 ans d’expérience en conception et développement backend C# / ASP.NET Core
+      sur une plateforme d’intégration de données d’entreprise (IT/OT). Expertise en Clean Architecture, DDD et CQRS,
+      sécurité applicative et industrialisation CI/CD Azure. Référent technique projet, orienté performance,
+      maintenabilité et conformité.
+    </p>
+
+    <section>
+      <h2 class="section-title">Expérience</h2>
+
+      <article class="job">
+        <div class="job-head">
+          <div class="job-title">Ingénieur Logiciel Backend .NET &amp; DevOps</div>
+          <div class="job-dates">Oct. 2022 – Présent</div>
+        </div>
+        <div class="job-meta">Integration Objects — Tunis · Plateforme d’intégration IT/OT SIOTH® · Référent technique</div>
+        <ul>
+          <li>
+            Conception et développement de services distribués et d’API REST ASP.NET Core (.NET 10) en Clean Architecture
+            et DDD : <strong>+30&nbsp;% d’efficacité opérationnelle</strong> sur les parcours critiques.
+          </li>
+          <li>
+            Structuration CQRS (médiateur) + FluentValidation pour renforcer la testabilité et réduire le couplage.
+          </li>
+          <li>
+            Sécurité &amp; conformité : JWT / OAuth&nbsp;2.0, TLS, Azure Key Vault, signature de code, SBOM (CycloneDX / SPDX)
+            et suivi des vulnérabilités CRA / BSI TR-03183-2 sur <strong>+60 composants</strong>.
+          </li>
+          <li>
+            Data access hybride (EF Core 10 + Dapper) : <strong>requêtes −25&nbsp;% de latence</strong>, perfs applicatives
+            <strong>+30&nbsp;%</strong> ; observabilité Serilog et diagnostic prod : <strong>−40&nbsp;% du temps de réponse aux incidents</strong>.
+          </li>
+          <li>
+            Temps réel / event-driven (SignalR, gRPC, MQTT, AMQP) ; pipelines Azure DevOps (tests xUnit, Docker, migration .NET&nbsp;10)
+            et accompagnement technique de l’équipe.
+          </li>
+        </ul>
+      </article>
+
+      <article class="job">
+        <div class="job-head">
+          <div class="job-title">Ingénieur Développement Logiciel — Stage de fin d’études</div>
+          <div class="job-dates">Jan. – Juin 2022</div>
+        </div>
+        <div class="job-meta">RedLean — Monastir</div>
+        <ul>
+          <li>
+            Application Salesforce couplée web/mobile avec modules OCR (deep learning), intégration d’API tierces
+            et cadrage fonctionnel avec les parties prenantes.
+          </li>
+        </ul>
+      </article>
+
+      <article class="job">
+        <div class="job-head">
+          <div class="job-title">Développeur Frontend — Stage</div>
+          <div class="job-dates">Mai – Sept. 2019</div>
+        </div>
+        <div class="job-meta">Anypli — Monastir</div>
+        <ul>
+          <li>Application web React.js intégrant Cisco Webex (webhooks, espaces sécurisés) et Docker.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2 class="section-title">Compétences</h2>
+      <div class="skills-grid">
+        <div class="label">Backend &amp; API</div>
+        <div class="value">C#, .NET 10, ASP.NET Core, REST, Minimal APIs, gRPC/Protobuf, SignalR, OpenAPI</div>
+        <div class="label">Architecture</div>
+        <div class="value">Clean Architecture, DDD, CQRS, SOLID, design patterns, event-driven</div>
+        <div class="label">Données</div>
+        <div class="value">EF Core 10, Dapper, LINQ, SQL Server, MongoDB, PostgreSQL</div>
+        <div class="label">Sécurité</div>
+        <div class="value">OAuth 2.0 / JWT, TLS &amp; certificats, Azure Key Vault, SBOM, conformité CRA</div>
+        <div class="label">Qualité</div>
+        <div class="value">xUnit, FluentValidation, Serilog, tests d’intégration, revue de code</div>
+        <div class="label">Cloud &amp; DevOps</div>
+        <div class="value">Azure, Azure DevOps (CI/CD), Docker, Git</div>
+        <div class="label">Autres</div>
+        <div class="value">TypeScript, Angular, React · IA assistée (Claude, Copilot)</div>
+      </div>
+    </section>
+
+    <div class="two-col">
+      <section>
+        <h2 class="section-title">Formation</h2>
+        <div class="edu-item">
+          <strong>Diplôme National d’Ingénieur en Informatique — Génie Logiciel</strong>
+          <span>ISSAT Sousse · 2019 – 2022 · Cycle préparatoire intégré 2017 – 2019</span>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Langues</h2>
+        <div class="meta-item">
+          <strong>Arabe · Français · Anglais</strong>
+          <span>Langue maternelle · Courant professionnel · Courant professionnel</span>
+        </div>
+        <div class="chip-row">
+          <span class="chip">Disponible — remote / hybride</span>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
