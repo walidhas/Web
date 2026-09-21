@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cahier CE1 — Lecture, phrases et négatif</title>
+  <style>
+    @page { size: A4; margin: 10mm 11mm; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: #fff; color: #2b2a28;
+      font-family: "Trebuchet MS", "Nunito", "Segoe UI", sans-serif;
+      font-size: 11pt; line-height: 1.3;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .page { width: 188mm; page-break-after: always; break-after: page; padding: 0 0 2mm; }
+    .page:last-child { page-break-after: auto; break-after: auto; }
+    .topbar {
+      display: flex; justify-content: space-between; align-items: flex-end; gap: 12px;
+      margin-bottom: 7px; padding-bottom: 5px; border-bottom: 3px solid #e07a3d;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .fish {
+      width: 26px; height: 26px; border-radius: 50%; background: #f3b23a; color: #fff;
+      font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 11pt;
+    }
+    .brand h1 { margin: 0; font-size: 13pt; color: #c45a1a; }
+    .brand p { margin: 0; font-size: 8pt; color: #7a6f66; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; }
+    .meta { display: flex; gap: 10px; font-size: 10pt; }
+    .meta span { border-bottom: 1.5px dotted #8b8178; min-width: 42mm; padding: 0 4px 1px; color: #7a6f66; }
+    .title-row { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 5px; }
+    .fiche-title { margin: 0; font-size: 14.5pt; }
+    .pill {
+      background: #eef6f4; color: #1f6f64; border: 1.5px solid #7db8ae; border-radius: 999px;
+      padding: 2px 10px; font-size: 8.5pt; font-weight: 800;
+    }
+    .section { display: flex; align-items: center; gap: 8px; margin: 7px 0 5px; }
+    .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px; border-radius: 50%; color: #fff; font-weight: 800; font-size: 9.5pt;
+    }
+    .badge.orange { background: #e07a3d; }
+    .badge.teal { background: #2a8f82; }
+    .badge.blue { background: #3a7ca5; }
+    .section h2 { margin: 0; font-size: 12.5pt; color: #e07a3d; }
+    .section.teal h2 { color: #2a8f82; }
+    .section.blue h2 { color: #3a7ca5; }
+    .story {
+      background: #fff8f1; border: 1.5px solid #f0c9a8; border-left: 6px solid #e07a3d;
+      border-radius: 8px; padding: 6px 10px; font-size: 10.2pt; line-height: 1.26;
+    }
+    .story p { margin: 0 0 2.5px; }
+    .story p:last-child { margin: 0; }
+    .q { margin: 4px 0 3px; }
+    .q .label { font-weight: 800; color: #c45a1a; }
+    .card, .story, table, .answer { page-break-inside: avoid; break-inside: avoid; }
+    .line { border-bottom: 1.4px dotted #9a9088; min-height: 16px; margin: 3px 0 6px; }
+    .line.short { width: 38mm; display: inline-block; vertical-align: bottom; margin: 0 0 2px 6px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 3px; }
+    .card { border-radius: 8px; padding: 6px 9px 7px; border: 1.5px solid #d7e8e4; background: #f4fbf9; }
+    .card.blue { border-color: #c9dcea; background: #f4f8fc; }
+    .card h3 { margin: 0 0 4px; font-size: 11.2pt; color: #2a8f82; }
+    .card.blue h3 { color: #3a7ca5; }
+    .hint { font-size: 8.3pt; color: #6d655e; font-style: italic; margin: 0 0 3px; }
+    ul.plain { margin: 2px 0 5px 18px; padding: 0; }
+    ul.plain li { margin: 2px 0; }
+    .transform { background: #fff; border: 1.4px dashed #b7cfc9; border-radius: 6px; padding: 5px 8px 7px; margin-top: 4px; }
+    .transform .write { display: block; border-bottom: 1.4px dotted #9a9088; min-height: 20px; margin-top: 3px; }
+    .dialogue .row { display: grid; grid-template-columns: 7mm 1fr; gap: 4px; margin: 3px 0; align-items: end; }
+    .dash { font-weight: 800; color: #3a7ca5; }
+    .footer {
+      display: flex; justify-content: space-between; font-size: 8.3pt; color: #8a817a;
+      border-top: 1px solid #eadfd6; padding-top: 4px; margin-top: 7px;
+    }
+    table { width: 100%; border-collapse: collapse; margin: 3px 0 5px; font-size: 10.3pt; }
+    th, td { border: 1.3px solid #c9dcea; padding: 7px; text-align: left; height: 26px; }
+    th { background: #e7f1f8; color: #2b5573; }
+    .grid-ex { display: grid; gap: 4px; margin: 3px 0 6px; }
+    .ex-item { display: grid; grid-template-columns: 7mm 1fr; gap: 4px; }
+    .num { font-weight: 800; color: #3a7ca5; }
+    .arrow { margin: 1px 0 2px 7mm; color: #6d655e; }
+    .answer { background: #fffdf6; border: 1.4px solid #ead7a4; border-radius: 8px; padding: 6px 8px; margin: 0 0 6px; }
+    .answer h3 { margin: 0 0 3px; font-size: 11.5pt; color: #b57912; }
+    .answer p { margin: 1px 0; font-size: 9.6pt; }
+    .corrige-note {
+      background: #fff4e8; border-left: 5px solid #e07a3d; padding: 5px 8px;
+      border-radius: 0 8px 8px 0; margin-bottom: 7px; font-size: 9.5pt;
+    }
+    .small { font-size: 10pt; }
+  </style>
+</head>
+<body>
+
+  <section class="page">
+    <div class="topbar">
+      <div class="brand">
+        <div class="fish">1</div>
+        <div>
+          <p>Cahier CE1 • Français</p>
+          <h1>Lecture, phrases et négatif</h1>
+        </div>
+      </div>
+      <div class="meta"><span>Nom : _______________</span><span>Date : __________</span></div>
+    </div>
+    <div class="title-row">
+      <h2 class="fiche-title">Fiche 1 — Max et Ninon sur la péniche</h2>
+      <span class="pill">D’après le livre</span>
+    </div>
+    <div class="section"><span class="badge orange">1</span><h2>Lecture</h2></div>
+    <div class="story">
+      <p>Max et Ninon passent des vacances pas comme les autres : ils voyagent sur une péniche… Hélas, il pleut. Max propose plein de jeux différents à sa sœur. À chaque fois, c’est : <b>non</b>. Le jeu de l’oie : non. Jouer à chat : non. À cache-cache : non, non et non.</p>
+      <p class="dial">— Et si on jouait à ni oui ni non&nbsp;? propose Max avec un grand sourire.</p>
+      <p class="dial">— N… je ne sais pas, répond Ninon.</p>
+      <p class="dial">— Allez, pour me faire plaisir…</p>
+      <p class="dial">— Mais je n’en ai pas envie&nbsp;!</p>
+      <p class="dial">— Tu préfères peut-être jouer aux sept familles&nbsp;?</p>
+      <p class="dial">— Pas vraiment…</p>
+      <p class="dial">— À la bataille&nbsp;?</p>
+      <p class="dial">— Encore moins.</p>
+      <p>Max se concentre. Il cherche un moyen de coincer sa sœur.</p>
+      <p class="dial">— Si tu joues avec moi, je range la chambre toute la semaine. Qu’est-ce que tu en dis&nbsp;?</p>
+      <p class="dial">— Bon, d’accord, tu as gagné&nbsp;!</p>
+      <p class="dial">— Ouiii&nbsp;! crie Max.</p>
+      <p class="dial">— Ah non&nbsp;! Tu as perdu&nbsp;!</p>
+    </div>
+    <div class="section"><span class="badge orange">?</span><h2>As-tu bien compris&nbsp;?</h2></div>
+    <div class="q"><span class="label">a.</span> Combien comptes-tu de «&nbsp;non&nbsp;» dans le texte&nbsp;? <span class="line short"></span></div>
+    <div class="q"><span class="label">b.</span> Cite les deux jeux de cartes proposés par Max.</div>
+    <div class="line"></div>
+    <div class="q"><span class="label">c.</span> Pourquoi Max a-t-il perdu&nbsp;?</div>
+    <div class="line"></div>
+    <div class="section teal"><span class="badge teal">2</span><h2>Français</h2></div>
+    <div class="two-col">
+      <div class="card">
+        <h3>Que de phrases&nbsp;!</h3>
+        <p class="small"><b>a.</b> Dans le texte, combien comptes-tu&nbsp;:</p>
+        <ul class="plain">
+          <li>de phrases interrogatives&nbsp;? <span class="line short"></span></li>
+          <li>de phrases exclamatives&nbsp;? <span class="line short"></span></li>
+        </ul>
+        <p class="small"><b>b.</b> Transforme en phrase interrogative.</p>
+        <div class="transform">Tu veux jouer.<span class="write">→</span></div>
+      </div>
+      <div class="card blue">
+        <h3>Négatif&nbsp;!</h3>
+        <p class="hint">Complète avec <b>ne … pas</b>.</p>
+        <div class="dialogue">
+          <div class="row"><span class="dash">—</span><span>Tu as triché&nbsp;!</span></div>
+          <div class="row"><span class="dash">—</span><span>Non, je ____________________________</span></div>
+          <div class="row"><span class="dash">—</span><span>Tu es pénible&nbsp;!</span></div>
+          <div class="row"><span class="dash">—</span><span>Non, je ____________________________</span></div>
+          <div class="row"><span class="dash">—</span><span>Tu veux encore jouer&nbsp;?</span></div>
+          <div class="row"><span class="dash">—</span><span>Non, je ____________________________</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span>Cahier unique — à imprimer en A4</span><span>Page 1 / 5</span></div>
+  </section>
+
+  <section class="page">
+    <div class="topbar">
+      <div class="brand">
+        <div class="fish">2</div>
+        <div>
+          <p>Cahier CE1 • Français</p>
+          <h1>Lecture, phrases et négatif</h1>
+        </div>
+      </div>
+      <div class="meta"><span>Nom : _______________</span><span>Date : __________</span></div>
+    </div>
+    <div class="title-row">
+      <h2 class="fiche-title">Fiche 2 — Léa et Tom au parc</h2>
+      <span class="pill">Même type d’exercices</span>
+    </div>
+    <div class="section"><span class="badge orange">1</span><h2>Lecture</h2></div>
+    <div class="story">
+      <p>Léa et Tom vont au parc. Hélas, le manège est fermé. Tom propose des jeux. À chaque fois, c’est : <b>non</b>.</p>
+      <p class="dial">— On joue au foot&nbsp;? propose Tom.</p>
+      <p class="dial">— Non, répond Léa.</p>
+      <p class="dial">— Au cache-cache&nbsp;?</p>
+      <p class="dial">— Non.</p>
+      <p class="dial">— Aux billes&nbsp;?</p>
+      <p class="dial">— Non, non et non.</p>
+      <p class="dial">— Et si on jouait à ni oui ni non&nbsp;? demande Tom avec un grand sourire.</p>
+      <p class="dial">— Je n’ai pas envie&nbsp;!</p>
+      <p class="dial">— Allez, pour me faire plaisir…</p>
+      <p class="dial">— Pas vraiment…</p>
+      <p class="dial">— Tu préfères peut-être la marelle&nbsp;?</p>
+      <p class="dial">— Encore moins.</p>
+      <p>Tom réfléchit. Il cherche un moyen de convaincre Léa.</p>
+      <p class="dial">— Si tu joues avec moi, je t’offre une glace. Qu’est-ce que tu en dis&nbsp;?</p>
+      <p class="dial">— Bon, d’accord, tu as gagné&nbsp;!</p>
+      <p class="dial">— Ouiii&nbsp;! crie Tom.</p>
+      <p class="dial">— Ah non&nbsp;! Tu as perdu&nbsp;!</p>
+    </div>
+    <div class="section"><span class="badge orange">?</span><h2>As-tu bien compris&nbsp;?</h2></div>
+    <div class="q"><span class="label">a.</span> Combien comptes-tu de «&nbsp;non&nbsp;» dans le texte&nbsp;? <span class="line short"></span></div>
+    <div class="q"><span class="label">b.</span> Cite les deux jeux proposés par Tom après le foot.</div>
+    <div class="line"></div>
+    <div class="q"><span class="label">c.</span> Pourquoi Tom a-t-il perdu&nbsp;?</div>
+    <div class="line"></div>
+    <div class="section teal"><span class="badge teal">2</span><h2>Français</h2></div>
+    <div class="two-col">
+      <div class="card">
+        <h3>Que de phrases&nbsp;!</h3>
+        <p class="small"><b>a.</b> Dans le texte, combien comptes-tu&nbsp;:</p>
+        <ul class="plain">
+          <li>de phrases interrogatives&nbsp;? <span class="line short"></span></li>
+          <li>de phrases exclamatives&nbsp;? <span class="line short"></span></li>
+        </ul>
+        <p class="small"><b>b.</b> Transforme en phrase interrogative.</p>
+        <div class="transform">Tu veux une glace.<span class="write">→</span></div>
+      </div>
+      <div class="card blue">
+        <h3>Négatif&nbsp;!</h3>
+        <p class="hint">Complète avec <b>ne … pas</b>.</p>
+        <div class="dialogue">
+          <div class="row"><span class="dash">—</span><span>Tu as triché&nbsp;!</span></div>
+          <div class="row"><span class="dash">—</span><span>Non, je ____________________________</span></div>
+          <div class="row"><span class="dash">—</span><span>Tu es trop bruyant&nbsp;!</span></div>
+          <div class="row"><span class="dash">—</span><span>Non, je ____________________________</span></div>
+          <div class="row"><span class="dash">—</span><span>Tu veux encore jouer&nbsp;?</span></div>
+          <div class="row"><span class="dash">—</span><span>Non, je ____________________________</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span>Cahier unique — à imprimer en A4</span><span>Page 2 / 5</span></div>
+  </section>
+
+  <section class="page">
+    <div class="topbar">
+      <div class="brand">
+        <div class="fish">3</div>
+        <div>
+          <p>Cahier CE1 • Français</p>
+          <h1>Lecture, phrases et négatif</h1>
+        </div>
+      </div>
+      <div class="meta"><span>Nom : _______________</span><span>Date : __________</span></div>
+    </div>
+    <div class="title-row">
+      <h2 class="fiche-title">Fiche 3 — Inès et Hugo à la maison</h2>
+      <span class="pill">Même type d’exercices</span>
+    </div>
+    <div class="section"><span class="badge orange">1</span><h2>Lecture</h2></div>
+    <div class="story">
+      <p>Il pleut. Inès et Hugo s’ennuient. Inès propose des activités. Hugo répond toujours&nbsp;: <b>non</b>.</p>
+      <p class="dial">— On dessine&nbsp;? propose Inès.</p>
+      <p class="dial">— Non, dit Hugo.</p>
+      <p class="dial">— On lit une histoire&nbsp;?</p>
+      <p class="dial">— Non.</p>
+      <p class="dial">— On construit un château&nbsp;?</p>
+      <p class="dial">— Non, non et non.</p>
+      <p class="dial">— Et si on jouait aux cartes&nbsp;? demande Inès.</p>
+      <p class="dial">— Je ne sais pas…</p>
+      <p class="dial">— Allez, pour me faire plaisir&nbsp;!</p>
+      <p class="dial">— Mais je n’en ai pas envie&nbsp;!</p>
+      <p class="dial">— Tu préfères peut-être le puzzle&nbsp;?</p>
+      <p class="dial">— Pas vraiment…</p>
+      <p class="dial">— Un jeu de société&nbsp;?</p>
+      <p class="dial">— Encore moins.</p>
+      <p>Inès a une idée pour coincer son frère.</p>
+      <p class="dial">— Si tu joues avec moi, je range tes jouets. D’accord&nbsp;?</p>
+      <p class="dial">— Oui&nbsp;! crie Hugo.</p>
+      <p class="dial">— Ah non&nbsp;! Tu as perdu&nbsp;!</p>
+    </div>
+    <div class="section"><span class="badge orange">?</span><h2>As-tu bien compris&nbsp;?</h2></div>
+    <div class="q"><span class="label">a.</span> Quel temps fait-il&nbsp;? <span class="line short"></span></div>
+    <div class="q"><span class="label">b.</span> Cite deux activités refusées par Hugo.</div>
+    <div class="line"></div>
+    <div class="q"><span class="label">c.</span> Pourquoi Hugo a-t-il perdu&nbsp;?</div>
+    <div class="line"></div>
+    <div class="section teal"><span class="badge teal">2</span><h2>Français</h2></div>
+    <div class="two-col">
+      <div class="card">
+        <h3>Que de phrases&nbsp;!</h3>
+        <p class="small"><b>a.</b> Dans le texte, combien comptes-tu&nbsp;:</p>
+        <ul class="plain">
+          <li>de phrases interrogatives&nbsp;? <span class="line short"></span></li>
+          <li>de phrases exclamatives&nbsp;? <span class="line short"></span></li>
+        </ul>
+        <p class="small"><b>b.</b> Transforme en phrase interrogative.</p>
+        <div class="transform">Tu ranges tes jouets.<span class="write">→</span></div>
+      </div>
+      <div class="card blue">
+        <h3>Négatif&nbsp;!</h3>
+        <p class="hint">Complète avec <b>ne … pas</b>.</p>
+        <div class="dialogue">
+          <div class="row"><span class="dash">—</span><span>Tu as compris&nbsp;?</span></div>
+          <div class="row"><span class="dash">—</span><span>Non, je ____________________________</span></div>
+          <div class="row"><span class="dash">—</span><span>Tu es fatigué&nbsp;?</span></div>
+          <div class="row"><span class="dash">—</span><span>Non, je ____________________________</span></div>
+          <div class="row"><span class="dash">—</span><span>Tu aimes la pluie&nbsp;?</span></div>
+          <div class="row"><span class="dash">—</span><span>Non, je ____________________________</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span>Cahier unique — à imprimer en A4</span><span>Page 3 / 5</span></div>
+  </section>
+
+  <section class="page">
+    <div class="topbar">
+      <div class="brand">
+        <div class="fish">4</div>
+        <div>
+          <p>Cahier CE1 • Français</p>
+          <h1>Entraînement rapide</h1>
+        </div>
+      </div>
+      <div class="meta"><span>Nom : _______________</span><span>Date : __________</span></div>
+    </div>
+    <div class="title-row">
+      <h2 class="fiche-title">Fiche 4 — Interrogatif et négatif</h2>
+      <span class="pill">Sans texte long</span>
+    </div>
+    <div class="section blue"><span class="badge blue">A</span><h2>Phrase interrogative</h2></div>
+    <p class="hint">Transforme chaque phrase en phrase interrogative.</p>
+    <div class="grid-ex">
+      <div class="ex-item"><span class="num">1.</span><span>Tu viens.</span></div>
+      <div class="arrow">→ ________________________________________________</div>
+      <div class="ex-item"><span class="num">2.</span><span>Elle aime les cartes.</span></div>
+      <div class="arrow">→ ________________________________________________</div>
+      <div class="ex-item"><span class="num">3.</span><span>Vous jouez au parc.</span></div>
+      <div class="arrow">→ ________________________________________________</div>
+      <div class="ex-item"><span class="num">4.</span><span>Il range sa chambre.</span></div>
+      <div class="arrow">→ ________________________________________________</div>
+    </div>
+    <div class="section teal"><span class="badge teal">B</span><h2>Phrase négative</h2></div>
+    <p class="hint">Écris chaque phrase à la forme négative avec <b>ne … pas</b>.</p>
+    <div class="grid-ex">
+      <div class="ex-item"><span class="num">1.</span><span>Tu as gagné. → ________________________________</span></div>
+      <div class="ex-item"><span class="num">2.</span><span>Je veux jouer. → ________________________________</span></div>
+      <div class="ex-item"><span class="num">3.</span><span>Il est pénible. → ________________________________</span></div>
+      <div class="ex-item"><span class="num">4.</span><span>Nous aimons la pluie. → ________________________________</span></div>
+      <div class="ex-item"><span class="num">5.</span><span>Elle a triché. → ________________________________</span></div>
+    </div>
+    <div class="section"><span class="badge orange">C</span><h2>Coche le type de phrase</h2></div>
+    <table>
+      <thead>
+        <tr><th>Phrase</th><th>Déclarative</th><th>Interrogative</th><th>Exclamative</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Tu veux jouer&nbsp;?</td><td></td><td></td><td></td></tr>
+        <tr><td>Tu as perdu&nbsp;!</td><td></td><td></td><td></td></tr>
+        <tr><td>Il pleut.</td><td></td><td></td><td></td></tr>
+        <tr><td>Quel beau sourire&nbsp;!</td><td></td><td></td><td></td></tr>
+        <tr><td>Ninon range la chambre.</td><td></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="section blue"><span class="badge blue">D</span><h2>Dialogue à compléter</h2></div>
+    <div class="two-col">
+      <div class="card blue">
+        <div class="dialogue">
+          <div class="row"><span class="dash">—</span><span>Tu as soif&nbsp;?</span></div>
+          <div class="row"><span class="dash">—</span><span>Non, je ________________________</span></div>
+          <div class="row"><span class="dash">—</span><span>Tu as faim&nbsp;?</span></div>
+          <div class="row"><span class="dash">—</span><span>Non, je ________________________</span></div>
+        </div>
+      </div>
+      <div class="card blue">
+        <div class="dialogue">
+          <div class="row"><span class="dash">—</span><span>Tu es content&nbsp;?</span></div>
+          <div class="row"><span class="dash">—</span><span>Oui, je ________________________</span></div>
+          <div class="row"><span class="dash">—</span><span>Tu veux encore un bonbon&nbsp;?</span></div>
+          <div class="row"><span class="dash">—</span><span>Non, je ________________________</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span>Cahier unique — à imprimer en A4</span><span>Page 4 / 5</span></div>
+  </section>
+
+  <section class="page">
+    <div class="topbar">
+      <div class="brand">
+        <div class="fish">✓</div>
+        <div>
+          <p>Cahier CE1 • Français</p>
+          <h1>Corrigé — pour l’adulte</h1>
+        </div>
+      </div>
+    </div>
+    <div class="corrige-note">
+      Dernière page du cahier. Ne pas donner à l’enfant en même temps que les fiches.
+      L’oral («&nbsp;Tu veux jouer&nbsp;?&nbsp;») et l’écrit («&nbsp;Veux-tu jouer&nbsp;?&nbsp;») sont tous les deux acceptés.
+    </div>
+    <div class="answer">
+      <h3>Fiche 1 — Max et Ninon</h3>
+      <p><b>a.</b> 8 «&nbsp;non&nbsp;». &nbsp; <b>b.</b> Les sept familles et la bataille. &nbsp; <b>c.</b> Max a crié «&nbsp;Ouiii&nbsp;!&nbsp;» alors qu’ils jouaient à ni oui ni non.</p>
+      <p><b>Phrases</b> : interrogatives <b>4</b> — exclamatives <b>5</b>. Transformée : <i>Veux-tu jouer&nbsp;?</i> / <i>Tu veux jouer&nbsp;?</i></p>
+      <p><b>Négatif</b> : je n’ai pas triché / je ne suis pas pénible / je ne veux pas encore jouer (ou : je ne veux plus jouer).</p>
+    </div>
+    <div class="answer">
+      <h3>Fiche 2 — Léa et Tom</h3>
+      <p><b>a.</b> 8 «&nbsp;non&nbsp;». &nbsp; <b>b.</b> Cache-cache et billes. &nbsp; <b>c.</b> Tom a crié «&nbsp;Ouiii&nbsp;!&nbsp;».</p>
+      <p><b>Phrases</b> : interrogatives <b>6</b> — exclamatives <b>5</b>. Transformée : <i>Veux-tu une glace&nbsp;?</i> / <i>Tu veux une glace&nbsp;?</i></p>
+      <p><b>Négatif</b> : je n’ai pas triché / je ne suis pas trop bruyant / je ne veux pas encore jouer.</p>
+    </div>
+    <div class="answer">
+      <h3>Fiche 3 — Inès et Hugo</h3>
+      <p><b>a.</b> Il pleut. &nbsp; <b>b.</b> Dessiner, lire, construire un château, les cartes, le puzzle, un jeu de société (deux suffisent). &nbsp; <b>c.</b> Hugo a crié «&nbsp;Oui&nbsp;!&nbsp;».</p>
+      <p><b>Phrases</b> : interrogatives <b>7</b> — exclamatives <b>5</b>. Transformée : <i>Ranges-tu tes jouets&nbsp;?</i> / <i>Tu ranges tes jouets&nbsp;?</i></p>
+      <p><b>Négatif</b> : je n’ai pas compris / je ne suis pas fatigué / je n’aime pas la pluie.</p>
+    </div>
+    <div class="answer">
+      <h3>Fiche 4 — Entraînement</h3>
+      <p><b>A.</b> Viens-tu&nbsp;? / Aime-t-elle les cartes&nbsp;? / Jouez-vous au parc&nbsp;? / Range-t-il sa chambre&nbsp;?</p>
+      <p><b>B.</b> Tu n’as pas gagné. / Je ne veux pas jouer. / Il n’est pas pénible. / Nous n’aimons pas la pluie. / Elle n’a pas triché.</p>
+      <p><b>C.</b> interrogative • exclamative • déclarative • exclamative • déclarative</p>
+      <p><b>D.</b> je n’ai pas soif / je n’ai pas faim / je suis content / je ne veux pas encore un bonbon.</p>
+    </div>
+    <div class="footer"><span>Corrigé du cahier unique</span><span>Page 5 / 5</span></div>
+  </section>
+
+</body>
+</html>
