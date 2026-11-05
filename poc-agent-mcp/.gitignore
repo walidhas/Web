@@ -1,0 +1,17 @@
+# Secrets / local env
+.env
+**/.env
+config/agent.client.env
+bridge/.env
+
+# Node
+node_modules/
+dist/
+*.log
+npm-debug.log*
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+*.user
+.vs/
