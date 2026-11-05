@@ -8,15 +8,38 @@ C:\Users\WalidHassayoune\OneDrive - HSO\Documents\Travail\HSO\Poc Agent MCP
 
 ## 2. Synchroniser le contenu
 
-Depuis ce dépôt Git (branche `cursor/poc-agent-mcp-hso-bridge-3c8a`), copie le dossier `poc-agent-mcp/` **dans** le chemin OneDrive ci-dessus (contenu à la racine du dossier POC, pas un sous-dossier imbriqué inutile).
+Le Cloud Agent **ne peut pas écrire** directement sur ton OneDrive Windows. Choisis une option :
 
-PowerShell (exemple si le repo est cloné ailleurs) :
+### Option A — script (recommandé)
+
+Depuis le dossier `poc-agent-mcp` du repo (branche PR) :
 
 ```powershell
-$src = "C:\path\to\repo\poc-agent-mcp\*"
+cd <chemin-du-repo>\poc-agent-mcp
+.\sync-to-onedrive.ps1
+```
+
+Destination par défaut :
+`C:\Users\WalidHassayoune\OneDrive - HSO\Documents\Travail\HSO\Poc Agent MCP`
+
+### Option B — ZIP artefact
+
+1. Télécharge `Poc-Agent-MCP.zip` depuis les artefacts de l’agent / la PR
+2. Extrais **à la racine** du dossier OneDrive (pas dans un sous-dossier `poc-agent-mcp` imbriqué) :
+
+```powershell
 $dst = "C:\Users\WalidHassayoune\OneDrive - HSO\Documents\Travail\HSO\Poc Agent MCP"
 New-Item -ItemType Directory -Force -Path $dst | Out-Null
-Copy-Item -Path $src -Destination $dst -Recurse -Force
+Expand-Archive -Path "$env:USERPROFILE\Downloads\Poc-Agent-MCP.zip" -DestinationPath $dst -Force
+```
+
+### Option C — robocopy manuel
+
+```powershell
+$src = "C:\path\to\repo\poc-agent-mcp"
+$dst = "C:\Users\WalidHassayoune\OneDrive - HSO\Documents\Travail\HSO\Poc Agent MCP"
+New-Item -ItemType Directory -Force -Path $dst | Out-Null
+robocopy $src $dst /E /XD node_modules dist .git /XF .env agent.client.env
 ```
 
 ## 3. Cursor
