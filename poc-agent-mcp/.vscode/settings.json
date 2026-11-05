@@ -1,0 +1,9 @@
+{
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  },
+  "editor.formatOnSave": true,
+  "typescript.tsdk": "bridge/node_modules/typescript/lib",
+  "terminal.integrated.cwd": "${workspaceFolder}/bridge"
+}
