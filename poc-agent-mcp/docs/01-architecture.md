@@ -38,6 +38,17 @@ User HSO
 3. **Bridge → Agent client** : token Entra avec scope Power Platform `CopilotStudio.Copilots.Invoke` (user interactif ou flux guest).
 4. **Agent client → MCP F&O** : identité de la connexion MCP (user F&O / guest provisionné).
 
+## Livraison du code (équipe HSO)
+
+| Canal | Usage |
+|-------|--------|
+| **Azure DevOps HSO** | Source de vérité — clone, branches, partage collègues |
+| Visual Studio Code | IDE standard pour ouvrir le projet et lancer le bridge |
+| Zip / OneDrive | **Non** — pas un canal de distribution |
+
+Flux collègue : `git clone` (DevOps HSO) → ouvrir dans VS Code → `npm run dev` dans `bridge/`.  
+Détail : [`06-azure-devops-hso.md`](06-azure-devops-hso.md) · [`../GETTING-STARTED.md`](../GETTING-STARTED.md).
+
 ## Facturation & conformité
 
 - Crédits Copilot Studio de l’**agent métier** : tenant **hôte** (client).
