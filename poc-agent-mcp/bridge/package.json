@@ -1,15 +1,17 @@
 {
-  "name": "hso-symbio-mcp-bridge",
+  "name": "hso-copilot-studio-bridge",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "HSO bridge: Activity endpoint → Symbio Copilot Studio agent (Agents SDK)",
+  "description": "HSO bridge: Activity endpoint → client Copilot Studio agent (Microsoft 365 Agents SDK)",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "start:dev": "tsx src/server.ts",
     "check": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },

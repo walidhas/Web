@@ -1,9 +1,7 @@
 # Bridge HSO — Microsoft 365 Agents SDK
 
-Le bridge est une API Activity Protocol (`POST /api/messages`) exécutable **en local** (dev) ou hébergée côté Azure HSO.  
+Le bridge est une API Activity Protocol (`POST /api/messages`) hébergée côté HSO.  
 Copilot Studio HSO l’ajoute comme **connected agent** ; le bridge appelle l’agent client via le SDK.
-
-Code source : repo **Azure DevOps HSO** — clone puis Visual Studio Code (voir [`../GETTING-STARTED.md`](../GETTING-STARTED.md)).
 
 ## Prérequis Entra
 
@@ -16,13 +14,7 @@ Code source : repo **Azure DevOps HSO** — clone puis Visual Studio Code (voir 
 
 ## Config
 
-Depuis la racine du projet (dossier ouvert dans VS Code) :
-
-```powershell
-cd bridge
-Copy-Item ..\config\agent.client.example.env .env
-# Éditer .env — ne pas committer
-```
+Copier `config/agent.client.example.env` vers `bridge/.env` :
 
 ```env
 PORT=3978
@@ -32,29 +24,27 @@ SCHEMA_NAME=cr10d_symbiod365uatmcp_<suffix>
 APP_CLIENT_ID=<app-registration-hso-or-client>
 # Option : DIRECT_CONNECT_URL=<chaîne Agents SDK complète>
 BRIDGE_API_KEY=<clé-partagée-avec-copilot-hso>
-MOCK_MODE=true
 ```
 
-## Lancer en local (Visual Studio Code)
+## Lancer en local (IDE)
 
 ```powershell
-cd bridge
+cd "C:\Users\WalidHassayoune\OneDrive - HSO\Documents\Travail\HSO\Poc Agent MCP\bridge"
 npm install
 npm run dev
 ```
 
-Ou **Run and Debug** → **Bridge: npm run dev** (F5).
-
 Health check : `GET http://localhost:3978/health`
 
-Sans secrets valides, `mockMode=true` : le bridge répond localement pour valider le démarrage.
+## Déploiement Azure (cible entreprise)
 
-## Déploiement Azure (cible)
+Voir le delta exact : [`07-enterprise-bridge-azure.md`](07-enterprise-bridge-azure.md).
 
-1. App Service (Node 22 LTS) ou Container Apps
-2. Variables d’environnement = `.env` (Key Vault pour secrets)
-3. HTTPS public : `https://<app>.azurewebsites.net/api/messages`
-4. Auth façade : header `x-api-key` = `BRIDGE_API_KEY`
+1. App Service (Node 22 LTS) ou Container Apps  
+2. `AUTH_MODE=client_credentials` + permission **Application** + Key Vault  
+3. HTTPS : `https://<app>.azurewebsites.net/api/messages`  
+4. Connected agent HSO → cette URL (plus de tunnel)  
+5. Auth façade : header `x-api-key` = `BRIDGE_API_KEY`
 
 ## Références
 
