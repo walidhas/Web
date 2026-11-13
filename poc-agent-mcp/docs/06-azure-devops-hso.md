@@ -3,6 +3,15 @@
 Pour le moment, la cible de partage est **uniquement Azure DevOps HSO**.  
 Les collègues clonent ce repo et exécutent le bridge sous Visual Studio Code.
 
+## Repo officiel
+
+| Champ | Valeur |
+|-------|--------|
+| Organisation | `HSO-France` |
+| Projet | `D365FO Add-Ins` |
+| Repo | `POC-Agent-MCPBridge` |
+| Clone HTTPS | `https://dev.azure.com/HSO-France/D365FO%20Add-Ins/_git/POC-Agent-MCPBridge` |
+
 ## Pourquoi DevOps HSO (et pas un zip)
 
 | Critère | Zip / OneDrive | Repo Azure DevOps HSO |
@@ -13,44 +22,50 @@ Les collègues clonent ce repo et exécutent le bridge sous Visual Studio Code.
 | CI/CD bridge | Absent | Pipeline possible plus tard |
 | Audit | Faible | Historique Git |
 
-## Créer le repo (admin HSO)
+## Permissions
 
-1. Azure DevOps HSO → projet dédié (ex. `Agents-MCP` ou projet existant « Innovation / Copilot »)
-2. **Repos → Files → New repository**
-   - Nom : `Poc-Agent-MCP`
-   - README initial : optionnel (on poussera celui du POC)
-3. Noter l’URL clone HTTPS (ou SSH) :
+- **Contributors** : équipe bridge / architects
+- **Readers** : collègues qui doivent seulement cloner et lancer en local
 
-```text
-https://dev.azure.com/<ORG-HSO>/<PROJECT>/_git/Poc-Agent-MCP
-```
+## Push initial (depuis une machine authentifiée HSO)
 
-4. Permissions :
-   - **Contributors** : équipe bridge / architects
-   - **Readers** : collègues qui doivent seulement cloner et lancer en local
+Le Cloud Agent n’a pas de PAT Azure DevOps. Le push se fait depuis un poste HSO déjà connecté (navigateur / Credential Manager / PAT).
 
-## Pousser le contenu POC
+### Option A — script (recommandé)
 
-Depuis une machine qui a déjà le code `poc-agent-mcp` :
+Depuis le dossier `poc-agent-mcp` (contenu solution) :
 
 ```powershell
-cd <chemin-local>\poc-agent-mcp
-git init   # si pas déjà un git dédié
-git remote add origin https://dev.azure.com/<ORG-HSO>/<PROJECT>/_git/Poc-Agent-MCP
-git add .
-git commit -m "Initial POC Agent MCP bridge + docs"
-git push -u origin main
+.\push-to-ado.ps1
 ```
 
-Variante si le code vit encore dans un monorepo GitHub : extraire uniquement `poc-agent-mcp/` vers ce repo DevOps (sparse checkout ou copie + push), pour que les collègues n’aient pas à naviguer dans un dépôt unrelated.
+### Option B — manuel
 
-**Recommandation :** repo DevOps **dédié** dont la racine = contenu actuel de `poc-agent-mcp/` (`bridge/`, `docs/`, `README.md`, `.vscode/`).
+```powershell
+cd <chemin>\poc-agent-mcp
+git init -b main   # si pas déjà un git dédié à cette racine
+git remote remove azure 2>$null
+git remote add azure https://dev.azure.com/HSO-France/D365FO%20Add-Ins/_git/POC-Agent-MCPBridge
+git add .
+git commit -m "Initial POC Agent MCP Bridge"
+git push -u azure main
+```
+
+Si le remote refuse un historique non fast-forward (repo déjà initialisé avec un README) :
+
+```powershell
+git pull azure main --allow-unrelated-histories
+# résoudre si besoin, puis :
+git push -u azure main
+```
+
+**Recommandation :** racine du repo DevOps = contenu de `poc-agent-mcp/` (`bridge/`, `docs/`, `README.md`, `.vscode/`).
 
 ## Ce que les collègues font ensuite
 
 Voir [`../GETTING-STARTED.md`](../GETTING-STARTED.md) :
 
-1. `git clone …`
+1. `git clone https://dev.azure.com/HSO-France/D365FO%20Add-Ins/_git/POC-Agent-MCPBridge`
 2. `code .` (Visual Studio Code)
 3. `cd bridge` → `npm install` → `npm run dev`
 

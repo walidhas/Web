@@ -17,20 +17,18 @@ Les collègues clonent le repo, ouvrent le projet dans **Visual Studio Code**, e
 
 ## Cloner depuis Azure DevOps HSO
 
-> Remplacer l’URL par celle du repo HSO une fois créé (voir [`docs/06-azure-devops-hso.md`](docs/06-azure-devops-hso.md)).
+Repo officiel :
 
-```powershell
-# Exemple — URL à confirmer avec l’équipe HSO
-git clone https://dev.azure.com/<ORG-HSO>/<PROJECT>/_git/Poc-Agent-MCP
-cd Poc-Agent-MCP\poc-agent-mcp
+```text
+https://dev.azure.com/HSO-France/D365FO%20Add-Ins/_git/POC-Agent-MCPBridge
 ```
 
-Si le repo ne contient **que** le dossier solution (racine = bridge + docs) :
-
 ```powershell
-git clone https://dev.azure.com/<ORG-HSO>/<PROJECT>/_git/Poc-Agent-MCP
-cd Poc-Agent-MCP
+git clone https://dev.azure.com/HSO-France/D365FO%20Add-Ins/_git/POC-Agent-MCPBridge
+cd POC-Agent-MCPBridge
 ```
+
+Détail repo / droits : [`docs/06-azure-devops-hso.md`](docs/06-azure-devops-hso.md).
 
 ## Ouvrir dans Visual Studio Code
 

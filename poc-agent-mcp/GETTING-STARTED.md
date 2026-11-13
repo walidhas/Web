@@ -5,16 +5,14 @@ Objectif : **cloner** le projet depuis Azure DevOps HSO, l’ouvrir dans **Visua
 ## 1. Accès DevOps HSO
 
 1. Se connecter à Azure DevOps HSO (compte Entra HSO)
-2. Vérifier l’accès au projet / repo `Poc-Agent-MCP` (Reader minimum)
+2. Vérifier l’accès au projet **D365FO Add-Ins** / repo **POC-Agent-MCPBridge** (Reader minimum)
 3. Si accès refusé → demander au owner du projet HSO
 
-URL type (à remplacer) :
-
 ```text
-https://dev.azure.com/<ORG-HSO>/<PROJECT>/_git/Poc-Agent-MCP
+https://dev.azure.com/HSO-France/D365FO%20Add-Ins/_git/POC-Agent-MCPBridge
 ```
 
-Voir [`docs/06-azure-devops-hso.md`](docs/06-azure-devops-hso.md) pour la création du repo.
+Voir [`docs/06-azure-devops-hso.md`](docs/06-azure-devops-hso.md).
 
 ## 2. Prérequis machine
 
@@ -31,14 +29,8 @@ Installer si besoin : [Node 22 LTS](https://nodejs.org/) · [VS Code](https://co
 
 ```powershell
 cd $env:USERPROFILE\source\repos   # ou tout autre dossier de travail
-git clone https://dev.azure.com/<ORG-HSO>/<PROJECT>/_git/Poc-Agent-MCP
-cd Poc-Agent-MCP
-```
-
-Si le bridge est dans un sous-dossier :
-
-```powershell
-cd poc-agent-mcp
+git clone https://dev.azure.com/HSO-France/D365FO%20Add-Ins/_git/POC-Agent-MCPBridge
+cd POC-Agent-MCPBridge
 ```
 
 ## 4. Visual Studio Code
