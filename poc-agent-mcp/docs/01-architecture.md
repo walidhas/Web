@@ -32,6 +32,12 @@ Le bridge HSO est un **proxy Activity Protocol** : il ne réimplémente pas les 
 
 > \* POC lab : Bridge = `localhost` + tunnel HTTPS. **Entreprise : Azure App Service.**
 
+### Captures POC (référence)
+
+- Agent métier Symbio : [02-copilot-studio-client.md](02-copilot-studio-client.md) · `images/copilot-studio-symbio-d365-uat-mcp.png`
+- Façade HSO : [04-agent-facade-hso.md](04-agent-facade-hso.md) · `images/copilot-studio-hso-symbio-fo-uat-facade.png`
+- Entra invoke : [03-bridge-hso.md](03-bridge-hso.md) · `images/entra-app-api-permissions-copilotstudio-invoke.png`
+
 ### Composants
 
 | Composant | Localisation | Responsabilité |

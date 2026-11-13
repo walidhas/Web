@@ -5,12 +5,15 @@ Copilot Studio HSO l’ajoute comme **connected agent** ; le bridge appelle l’
 
 ## Prérequis Entra
 
-1. App registration (public client pour le POC local, ou confidential pour Azure)
+1. App registration (public client pour le POC local, ou confidential pour Azure)  
+   Exemple POC : `TEST-API-D365-COPILOT_MCP` → `APP_CLIENT_ID` dans `bridge/.env`
 2. Redirect URI local : `http://localhost` (console) ou `http://localhost:3978` (HTTP)
 3. API permissions → **APIs my organization uses** → **Power Platform API**  
    Delegated : `CopilotStudio.Copilots.Invoke`
-4. Admin consent si requis
+4. **Grant admin consent** (statut attendu : *Granted for Symbio*)
 5. Pour cross-tenant : app **multi-tenant** et/ou users HSO en guest sur le tenant Symbio
+
+![Entra — permission Delegated CopilotStudio.Copilots.Invoke (Granted for Symbio)](images/entra-app-api-permissions-copilotstudio-invoke.png)
 
 ## Config
 

@@ -2,13 +2,27 @@
 
 ## État actuel
 
-Agent **Symbio D365 UAT MCP** : **Published**.
+Agent **Symbio D365 UAT MCP** : **Published** (environnement Power Platform **symbiouat** — bac à sable).
+
+![Agent Symbio D365 UAT MCP — Copilot Studio (Published)](images/copilot-studio-symbio-d365-uat-mcp.png)
 
 Récupérer dans Copilot Studio (tenant client) :
 
 1. **Settings → Advanced → Metadata** : Environment ID, Schema name
 2. **Canaux → Application / Web app** : chaîne Microsoft 365 Agents SDK
-3. Coller dans `config/agent.client.env` (non versionné)
+3. Coller dans `bridge/.env` (non versionné) — ne jamais committer secrets / connection string
+
+### Référence UI (capture)
+
+| Élément | Valeur observée POC |
+|---------|---------------------|
+| Nom | `Symbio D365 UAT MCP` |
+| Statut | Published |
+| Environnement | `symbiouat` (sandbox) |
+| Canaux | Teams + Microsoft 365 |
+| Outils (ex.) | Dynamics 365 Service MCP Server, Microsoft Learn Docs MCP, Work IQ |
+
+> Le bridge invoque cet agent via Agents SDK ; les tools MCP F&O restent côté **tenant Symbio**, pas sur HSO.
 
 ## Checklist F&O UAT
 

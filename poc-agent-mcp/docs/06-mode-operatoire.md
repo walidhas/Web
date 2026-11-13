@@ -44,6 +44,10 @@ Chemin projet :
 4. Si Power Platform API n’apparaît pas : provisionner l’API sur le tenant  
    [docs Microsoft](https://learn.microsoft.com/power-platform/admin/programmability-authentication-v2#step-2-configure-api-permissions)
 
+Capture POC (app `TEST-API-D365-COPILOT_MCP`) :
+
+![Entra API permissions — CopilotStudio.Copilots.Invoke Granted for Symbio](images/entra-app-api-permissions-copilotstudio-invoke.png)
+
 ### B2. Conditional Access
 
 Si login device code / browser → *Accès impossible* après authentification réussie :
@@ -63,7 +67,11 @@ Pour `AUTH_MODE=client_credentials` + `APP_CLIENT_SECRET` :
 
 ## C. Symbio — Agent métier & connection string
 
-1. Copilot Studio **tenant Symbio** → agent **Symbio D365 UAT MCP** (Published)
+1. Copilot Studio **tenant Symbio** → agent **Symbio D365 UAT MCP** (Published)  
+   Environnement POC : **symbiouat** (sandbox)
+
+![Symbio D365 UAT MCP — Published (symbiouat)](images/copilot-studio-symbio-d365-uat-mcp.png)
+
 2. **Channels** → Web app / Native app → **Microsoft 365 Agents SDK** → **Copy** connection string  
    → coller dans `bridge/.env` : `CONNECTION_STRING=…`
 3. **Settings → Advanced → Metadata** : noter Environment ID + Schema name  
@@ -209,11 +217,13 @@ Détail UI : [04-agent-facade-hso.md](04-agent-facade-hso.md).
 3. Instructions : déléguer F&O au connected agent ; ne pas inventer de données ERP
 4. **Ne pas** ajouter le tool Dynamics 365 ERP MCP sur HSO
 
+![Façade HSO Symbio F&O UAT — Published + assistant connecté](images/copilot-studio-hso-symbio-fo-uat-facade.png)
+
 ### F2. Connected agent
 
-1. **Build → Connected agents → Add** → **Microsoft 365 Agents SDK agent**
+1. **Build → Connected agents / Assistants connectés → Add** → **Microsoft 365 Agents SDK agent**
 2. Messaging endpoint : `https://<tunnel-or-azure>/api/messages`
-3. Nom : ex. `Symbio D365 Bridge` (≤ 30 car.)
+3. Nom : ex. `HSO Symbio Bridge 2` (≤ 30 car.) — **aligné** avec le nom dans les consignes
 4. Description riche (routing) : F&O, clients, commandes, inventaire, Symbio UAT…
 5. Auth : **API key** = même valeur que `BRIDGE_API_KEY`  
    Header / champ = **`x-api-key`** (pas d’espace dans le nom)
