@@ -36,12 +36,15 @@ npm run dev
 
 Health check : `GET http://localhost:3978/health`
 
-## Déploiement Azure (cible)
+## Déploiement Azure (cible entreprise)
 
-1. App Service (Node 22 LTS) ou Container Apps
-2. Variables d’environnement = `.env` (Key Vault pour secrets)
-3. HTTPS public : `https://<app>.azurewebsites.net/api/messages`
-4. Auth façade : header `x-api-key` = `BRIDGE_API_KEY`
+Voir le delta exact : [`07-enterprise-bridge-azure.md`](07-enterprise-bridge-azure.md).
+
+1. App Service (Node 22 LTS) ou Container Apps  
+2. `AUTH_MODE=client_credentials` + permission **Application** + Key Vault  
+3. HTTPS : `https://<app>.azurewebsites.net/api/messages`  
+4. Connected agent HSO → cette URL (plus de tunnel)  
+5. Auth façade : header `x-api-key` = `BRIDGE_API_KEY`
 
 ## Références
 

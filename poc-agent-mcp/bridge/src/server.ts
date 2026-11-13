@@ -17,6 +17,18 @@ type Activity = {
 const app = express();
 app.use(express.json({ limit: "1mb" }));
 
+app.use((req, _res, next) => {
+  if (req.path === "/health") {
+    next();
+    return;
+  }
+  const headerNames = Object.keys(req.headers);
+  console.log(
+    `[bridge] ${req.method} ${req.path} headers=[${headerNames.join(", ")}] type=${(req.body as Activity)?.type ?? "?"}`,
+  );
+  next();
+});
+
 function requireApiKey(req: Request, res: Response, next: NextFunction): void {
   if (!appConfig.bridgeApiKey) {
     next();
@@ -35,6 +47,7 @@ app.get("/health", (_req, res) => {
     ok: true,
     mockMode: appConfig.mockMode,
     canCallCopilotStudio: appConfig.canCallCopilotStudio,
+    authMode: appConfig.authMode,
     environmentId: appConfig.environmentId ?? null,
     schemaName: appConfig.schemaName ?? null,
   });
@@ -92,7 +105,9 @@ app.post("/api/messages", requireApiKey, async (req: Request, res: Response) => 
   }
 });
 
-app.listen(appConfig.port, () => {
-  console.log(`HSO Symbio MCP bridge listening on http://localhost:${appConfig.port}`);
-  console.log(`mockMode=${appConfig.mockMode} canCallCopilotStudio=${appConfig.canCallCopilotStudio}`);
+app.listen(appConfig.port, "0.0.0.0", () => {
+  console.log(`HSO Symbio MCP bridge listening on 0.0.0.0:${appConfig.port}`);
+  console.log(
+    `mockMode=${appConfig.mockMode} canCallCopilotStudio=${appConfig.canCallCopilotStudio} authMode=${appConfig.authMode}`,
+  );
 });
