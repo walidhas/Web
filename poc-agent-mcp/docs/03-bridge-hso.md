@@ -5,12 +5,15 @@ Copilot Studio HSO l’ajoute comme **connected agent** ; le bridge appelle l’
 
 ## Prérequis Entra
 
-1. App registration (public client pour le POC local, ou confidential pour Azure)
+1. App registration (public client pour le POC local, ou confidential pour Azure)  
+   Exemple POC : `TEST-API-D365-COPILOT_MCP` → `APP_CLIENT_ID` dans `bridge/.env`
 2. Redirect URI local : `http://localhost` (console) ou `http://localhost:3978` (HTTP)
 3. API permissions → **APIs my organization uses** → **Power Platform API**  
    Delegated : `CopilotStudio.Copilots.Invoke`
-4. Admin consent si requis
+4. **Grant admin consent** (statut attendu : *Granted for Symbio*)
 5. Pour cross-tenant : app **multi-tenant** et/ou users HSO en guest sur le tenant Symbio
+
+![Entra — permission Delegated CopilotStudio.Copilots.Invoke (Granted for Symbio)](images/entra-app-api-permissions-copilotstudio-invoke.png)
 
 ## Config
 
@@ -26,22 +29,27 @@ APP_CLIENT_ID=<app-registration-hso-or-client>
 BRIDGE_API_KEY=<clé-partagée-avec-copilot-hso>
 ```
 
-## Lancer en local (IDE)
+## Lancer en local (Visual Studio Code)
+
+Depuis la racine du repo cloné :
 
 ```powershell
-cd "C:\Users\WalidHassayoune\OneDrive - HSO\Documents\Travail\HSO\Poc Agent MCP\bridge"
+cd bridge
 npm install
 npm run dev
 ```
 
 Health check : `GET http://localhost:3978/health`
 
-## Déploiement Azure (cible)
+## Déploiement Azure (cible entreprise)
 
-1. App Service (Node 22 LTS) ou Container Apps
-2. Variables d’environnement = `.env` (Key Vault pour secrets)
-3. HTTPS public : `https://<app>.azurewebsites.net/api/messages`
-4. Auth façade : header `x-api-key` = `BRIDGE_API_KEY`
+Voir le delta exact : [`07-enterprise-bridge-azure.md`](07-enterprise-bridge-azure.md).
+
+1. App Service (Node 22 LTS) ou Container Apps  
+2. `AUTH_MODE=client_credentials` + permission **Application** + Key Vault  
+3. HTTPS : `https://<app>.azurewebsites.net/api/messages`  
+4. Connected agent HSO → cette URL (plus de tunnel)  
+5. Auth façade : header `x-api-key` = `BRIDGE_API_KEY`
 
 ## Références
 

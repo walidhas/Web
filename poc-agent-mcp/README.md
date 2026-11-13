@@ -2,15 +2,17 @@
 
 Projet IDE pour exposer l’agent Copilot Studio **Symbio D365 UAT MCP** (tenant client) vers le **Copilot interne HSO**, via un bridge Microsoft 365 Agents SDK.
 
-## Chemin local (Cursor IDE)
+## Démarrer en local (Visual Studio Code)
 
-Ouvre ce dossier dans Cursor Desktop :
+Cloner depuis Azure DevOps HSO, puis ouvrir le dossier du repo dans **Visual Studio Code** :
 
-```text
-C:\Users\WalidHassayoune\OneDrive - HSO\Documents\Travail\HSO\Poc Agent MCP
+```powershell
+git clone https://dev.azure.com/HSO-France/D365FO%20Add-Ins/_git/POC-Agent-MCPBridge
+cd POC-Agent-MCPBridge
+code .
 ```
 
-Si tu clones ce dépôt, copie ou clone le contenu de `poc-agent-mcp/` dans ce chemin OneDrive, puis **File → Open Folder**.
+Détail : [`GETTING-STARTED.md`](GETTING-STARTED.md).
 
 ## Objectif
 
@@ -23,6 +25,8 @@ Si tu clones ce dépôt, copie ou clone le contenu de `poc-agent-mcp/` dans ce c
 ```text
 [Copilot HSO] → [Agent façade HSO] → [Bridge] → [Symbio D365 UAT MCP] → [F&O …/mcp]
 ```
+
+![Architecture HSO bridge](docs/images/hso-bridge-architecture.jpg)
 
 > Le mode multitenant Copilot Studio (preview) **ne supporte pas les outils MCP**. Ne pas l’utiliser pour cet agent.
 
@@ -37,14 +41,26 @@ poc-agent-mcp/
 └── .vscode/                   # Lancement IDE
 ```
 
+## Documentation
+
+| Doc | Contenu |
+|-----|---------|
+| [`docs/01-architecture.md`](docs/01-architecture.md) | Architecture explicative (flux, identités, invariants, état POC) |
+| [`docs/06-mode-operatoire.md`](docs/06-mode-operatoire.md) | Mode opératoire lab (Entra, bridge, tunnel, façade, dépannage) |
+| [`docs/07-enterprise-bridge-azure.md`](docs/07-enterprise-bridge-azure.md) | Delta entreprise — Bridge Azure |
+| [`docs/08-mode-operatoire-technique-clients.md`](docs/08-mode-operatoire-technique-clients.md) | **Mode opératoire multi-clients (à partager)** |
+| [`docs/02-copilot-studio-client.md`](docs/02-copilot-studio-client.md) | Checklist agent Symbio / F&O |
+| [`docs/03-bridge-hso.md`](docs/03-bridge-hso.md) | Bridge & déploiement Azure |
+| [`docs/04-agent-facade-hso.md`](docs/04-agent-facade-hso.md) | Façade & Connected agent |
+| [`docs/05-agent-devops.md`](docs/05-agent-devops.md) | Piste ADO MCP (après D365) |
+
 ## Démarrage rapide
 
-1. Lire [`docs/01-architecture.md`](docs/01-architecture.md)
-2. Remplir `config/agent.client.example.env` → `config/agent.client.env` (gitignored)
-3. Suivre [`docs/02-copilot-studio-client.md`](docs/02-copilot-studio-client.md) (agent déjà Published)
-4. Développer / lancer le bridge : [`docs/03-bridge-hso.md`](docs/03-bridge-hso.md)
-5. Brancher l’agent façade HSO : [`docs/04-agent-facade-hso.md`](docs/04-agent-facade-hso.md)
-6. (Optionnel) Agent DevOps : [`docs/05-agent-devops.md`](docs/05-agent-devops.md)
+1. Lire [`docs/01-architecture.md`](docs/01-architecture.md) puis suivre [`docs/06-mode-operatoire.md`](docs/06-mode-operatoire.md)
+2. Remplir `bridge/.env` depuis `config/agent.client.example.env` (gitignored)
+3. Checklist agent Symbio : [`docs/02-copilot-studio-client.md`](docs/02-copilot-studio-client.md)
+4. Bridge + tunnel + façade : sections D–F du mode opératoire
+5. (Optionnel) Agent DevOps : [`docs/05-agent-devops.md`](docs/05-agent-devops.md)
 
 ### Bridge local
 
@@ -62,7 +78,7 @@ npm run dev
 |-------|--------|
 | Nom | `Symbio D365 UAT MCP` |
 | Environment ID | `4f680da5-2dcc-eace-a4eb-9787feeef742` |
-| Bot / Schema | `cr10d_symbiod365uatmcp_…` (voir Copilot Studio → Settings → Advanced) |
+| Bot / Schema | `cr10d_symbiod365uatmcp_9v0lfl` |
 | MCP F&O | `https://symbiouat.sandbox.operations.eu.dynamics.com/mcp` |
 | F&O base | `https://symbiouat.sandbox.operations.eu.dynamics.com/` |
 | ADO org | `https://dev.azure.com/symbiofcell/` |
