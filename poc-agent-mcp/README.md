@@ -2,15 +2,17 @@
 
 Projet IDE pour exposer l’agent Copilot Studio **Symbio D365 UAT MCP** (tenant client) vers le **Copilot interne HSO**, via un bridge Microsoft 365 Agents SDK.
 
-## Chemin local (Cursor IDE)
+## Démarrer en local (Visual Studio Code)
 
-Ouvre ce dossier dans Cursor Desktop :
+Cloner depuis Azure DevOps HSO, puis ouvrir le dossier du repo dans **Visual Studio Code** :
 
-```text
-C:\Users\WalidHassayoune\OneDrive - HSO\Documents\Travail\HSO\Poc Agent MCP
+```powershell
+git clone https://dev.azure.com/HSO-France/D365FO%20Add-Ins/_git/POC-Agent-MCPBridge
+cd POC-Agent-MCPBridge
+code .
 ```
 
-Si tu clones ce dépôt, copie ou clone le contenu de `poc-agent-mcp/` dans ce chemin OneDrive, puis **File → Open Folder**.
+Détail : [`GETTING-STARTED.md`](GETTING-STARTED.md).
 
 ## Objectif
 

@@ -1,11 +1,11 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  Pousse la version LOCALE (OneDrive / dossier ouvert) vers Azure DevOps HSO.
+  Pousse la version LOCALE (dossier courant ou -Source) vers Azure DevOps HSO.
 
 .DESCRIPTION
-  Utilise le contenu du dossier courant (ou -Source) — typiquement :
-  C:\Users\WalidHassayoune\OneDrive - HSO\Documents\Travail\HSO\Poc Agent MCP\poc-agent-mcp
+  Utilise le contenu du dossier courant (ou -Source), ex. la racine du clone
+  POC-Agent-MCPBridge.
 
   Authentification : navigateur / Credential Manager / PAT (ne pas hardcoder le PAT).
 #>

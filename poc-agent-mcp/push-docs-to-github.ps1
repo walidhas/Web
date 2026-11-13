@@ -1,12 +1,12 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  Pousse les docs locales (OneDrive) vers GitHub walidhas/Web (contournement Azure DevOps).
+  Pousse les docs/POC locaux (dossier courant ou -PocSource) vers GitHub walidhas/Web.
 #>
 [CmdletBinding()]
 param(
-  [string]$DocsSource = "C:\Users\WalidHassayoune\OneDrive - HSO\Documents\Travail\HSO\Poc Agent MCP\poc-agent-mcp\docs",
-  [string]$PocSource = "C:\Users\WalidHassayoune\OneDrive - HSO\Documents\Travail\HSO\Poc Agent MCP\poc-agent-mcp",
+  [string]$DocsSource = (Join-Path $PSScriptRoot "docs"),
+  [string]$PocSource = $PSScriptRoot,
   [string]$GithubUrl = "https://github.com/walidhas/Web.git",
   [string]$Branch = "cursor/poc-agent-mcp-latest-docs-3c8a",
   [switch]$FullPoc
@@ -32,7 +32,7 @@ if (-not (Test-Path $destPoc)) { New-Item -ItemType Directory -Path $destPoc | O
 
 if ($FullPoc) {
   if (-not (Test-Path $PocSource)) { throw "POC source missing: $PocSource" }
-  Write-Host "Sync full POC from OneDrive…" -ForegroundColor Cyan
+  Write-Host "Sync full POC from $PocSource…" -ForegroundColor Cyan
   robocopy $PocSource $destPoc /E /XD node_modules dist .git /XF .env agent.client.env /NFL /NDL /NJH /NJS /NP | Out-Null
   if ($LASTEXITCODE -ge 8) { throw "robocopy failed: $LASTEXITCODE" }
 } else {
@@ -44,7 +44,7 @@ if ($FullPoc) {
 
 git add poc-agent-mcp
 git status
-git commit -m "Sync latest local POC docs from OneDrive (temp GitHub landing)."
+git commit -m "Sync latest local POC docs to GitHub."
 if ($LASTEXITCODE -ne 0) {
   Write-Host "Nothing to commit or commit failed ($LASTEXITCODE)" -ForegroundColor Yellow
   exit 0

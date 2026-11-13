@@ -26,10 +26,12 @@ APP_CLIENT_ID=<app-registration-hso-or-client>
 BRIDGE_API_KEY=<clé-partagée-avec-copilot-hso>
 ```
 
-## Lancer en local (IDE)
+## Lancer en local (Visual Studio Code)
+
+Depuis la racine du repo cloné :
 
 ```powershell
-cd "C:\Users\WalidHassayoune\OneDrive - HSO\Documents\Travail\HSO\Poc Agent MCP\bridge"
+cd bridge
 npm install
 npm run dev
 ```
